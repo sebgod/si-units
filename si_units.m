@@ -25,6 +25,13 @@
     ;    luminous_intensity
     ;    amound_of_substance.
 
+:- typeclass dim(T) where [
+    func dim(T) = dim
+].
+
+:- instance dim(dim).
+:- instance dim(list(T)) <= dim(T).
+
 :- type dim
     ---> base(base_quantity)
     ;    product(list(dim))
@@ -32,7 +39,7 @@
 
 :- inst dim
     ---> base(ground)
-    ;    product(list(dim))
+    ;    product(list_skel(dim))
     ;    power(dim, ground)
     .
 
@@ -78,6 +85,14 @@
 :- import_module exception.
 :- use_module math.
 
+:- instance dim(dim) where [
+    (dim(Dim) = Dim)
+].
+
+:- instance dim(list(T)) <= dim(T) where [
+    (dim(List) = product(map(dim, List)))
+].
+
 Dim ** Exp =
     ( Dim = base(_) ->
         power(Dim, Exp)
@@ -113,6 +128,8 @@ Multiplicand * Multiplier =
             )
         ; Multiplier = product(Prod1) ->
             product([Multiplicand] ++ Prod1)
+        ; Multiplier = Base1 ->
+            power(Base1, Exp1 + 1)
         ;
             product([Multiplicand] ++ [Multiplier])
         )
@@ -147,12 +164,18 @@ kelvin = base(temperature).
 %------------------------------------------------------------------------------%
 
 main(!IO) :-
-    io.print("Velocity = ", !IO),
-    Velocity = m * s**2,
-    io.write_line(Velocity, !IO),
-    io.print("Hertz = ", !IO),
-    Herz = s ** -1,
-    io.write_line(Herz, !IO).
+    print_test("Velocity", m / s, !IO),
+    print_test("Acceleration", m * s ** -2, !IO),
+    print_test("Hertz", s ** -1, !IO),
+    print_test("nano metres", m `exp` -9, !IO),
+    print_test("cube metres", m * m * m, !IO).
+
+:- pred print_test(string::in, T::in, io::di, io::uo) is det.
+
+print_test(Name, Entity, !IO) :-
+    io.print(Name, !IO),
+    io.print(" = ", !IO),
+    io.write_line(Entity, !IO).
 
 %------------------------------------------------------------------------------%
 :- end_module si_units.
