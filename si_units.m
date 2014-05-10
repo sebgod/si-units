@@ -13,7 +13,6 @@
 
 :- import_module io.
 :- import_module list.
-:- import_module pair.
 :- import_module generic_math.
 
 :- type base_quantity
@@ -25,8 +24,18 @@
     ;    luminous_intensity
     ;    amound_of_substance.
 
+%:- type dimmed_value(TD, TV)
+%    --->    dimmed_value(
+%                        value :: TV,
+%                        dimension :: TD
+%            ).
+
+% :- type dimmed_value == dimmed_value(float, dim).
+
+
 :- typeclass dim(T) where [
-    func dim(T) = dim
+    func dim(T) = dim,
+    (some [TV] func value(T) = TV => generic_math(TV))
 ].
 
 :- instance dim(dim).
@@ -43,19 +52,10 @@
     ;    power(dim, ground)
     .
 
-:- type scaled_dim == pair(dim, int).
-
-:- type dimmed_value
-   ---> some [T]
-    (
-        dimmed_value(
-                    T,
-                    dim
-        ) => generic_math(T)
-    ).
 
 :- func m = dim.
 :- func metre = dim.
+% :- func 'AU' = dimmed_value.
 
 :- func s = dim.
 :- func second = dim.
@@ -66,13 +66,13 @@
 :- func 'K' = dim.
 :- func kelvin = dim.
 
-:- func dim ** int = dim.
+:- func T ** int = dim <= dim(T).
 
-:- func dim *  dim = dim.
+:- func T1 * T2  = dim <= (dim(T1), dim(T2)).
 
-:- func dim /  dim = dim.
+:- func T1 / T2  = dim <= (dim(T1), dim(T2)).
 
-:- func exp(dim, int) = scaled_dim.
+% :- func exp(dim, int) = dim.
 
 :- pred main(io::di, io::uo) is det.
 
@@ -86,71 +86,77 @@
 :- use_module math.
 
 :- instance dim(dim) where [
-    (dim(Dim) = Dim)
+    (dim(Dim) = Dim),
+    (value(_) = 1.0)
 ].
 
 :- instance dim(list(T)) <= dim(T) where [
-    (dim(List) = product(map(dim, List)))
+    (dim(List) = product(map(dim, List))),
+    (value(_)  = 1.0)
 ].
 
 Dim ** Exp =
-    ( Dim = base(_) ->
-        power(Dim, Exp)
-    ; Dim = power(Base, Exp0) ->
+    ( dim(Dim) = base(_) ->
+        power(dim(Dim), Exp)
+    ; dim(Dim) = power(Base, Exp0) ->
         power(Base, Exp0 * Exp)
     ;
         unexpected($file, $pred, "not implemented yet")
     ).
 
-Multiplicand * Multiplier =
+Multiplicand * Multiplier = Product :-
+    Md = dim(Multiplicand),
+    Mr = dim(Multiplier),
+    Product =
     (
-        Multiplicand = base(Base1)
+        Md = base(Base1)
     ->
-        ( Multiplier = base(Base2) ->
+        ( Mr = base(Base2) ->
             ( Base1 = Base2 ->
-                power(Multiplicand, 2)
+                power(Md, 2)
             ;
-                product([Multiplicand, Multiplier])
+                product([Md, Mr])
             )
-        ; Multiplier = product(Prod1) ->
-            product([Multiplicand] ++ Prod1)
+        ; Mr = product(Prod1) ->
+            product([Md] ++ Prod1)
         ;
-            product([Multiplicand] ++ [Multiplier])
+            product([Md] ++ [Mr])
         )
     ;
-        Multiplicand = power(Base1, Exp1)
+        Md = power(Base1, Exp1)
     ->
-        ( Multiplier   = power(Base2, Exp2) ->
+        ( Mr = power(Base2, Exp2) ->
             ( Base1 = Base2 ->
                 power(Base1, Exp1 * Exp2)
             ;
-                product([Multiplicand, Multiplier])
+                product([Md, Mr])
             )
-        ; Multiplier = product(Prod1) ->
-            product([Multiplicand] ++ Prod1)
-        ; Multiplier = Base1 ->
+        ; Mr = product(Prod1) ->
+            product([Md] ++ Prod1)
+        ; Mr = Base1 ->
             power(Base1, Exp1 + 1)
         ;
-            product([Multiplicand] ++ [Multiplier])
+            product([Md] ++ [Mr])
         )
     ;
-        Multiplicand = product(Prod1)
+        Md = product(Prod1)
     ->
-        ( Multiplier = product(Prod2) ->
+        ( Mr = product(Prod2) ->
             product(Prod1 ++ Prod2)
         ;
-            product(Prod1 ++ [Multiplier])
+            product(Prod1 ++ [Mr])
         )
     ;
         unexpected($file, $pred, "unsupported dimension product")
     ).
 
-Divident / Divisor = Divident * power(Divisor, -1).
+Divident / Divisor = dim(Divident * power(dim(Divisor), -1)).
 
-exp(Dim, Scale) = Dim-Scale.
+% exp(Dim, Scale) = Dim-math.pow(10.0, to_float(Scale)).
 
 m  = base(length).
 metre  = base(length).
+% 'AU' = base(length)-1495078707000.0.
 
 s  = base(time).
 second  = base(time).
@@ -167,7 +173,7 @@ main(!IO) :-
     print_test("Velocity", m / s, !IO),
     print_test("Acceleration", m * s ** -2, !IO),
     print_test("Hertz", s ** -1, !IO),
-    print_test("nano metres", m `exp` -9, !IO),
+   % print_test("nano metres", m `exp` -9, !IO),
     print_test("cube metres", m * m * m, !IO).
 
 :- pred print_test(string::in, T::in, io::di, io::uo) is det.
