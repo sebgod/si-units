@@ -15,6 +15,25 @@
 :- import_module list.
 :- import_module generic_math.
 
+:- typeclass dimmed_value(T) where [
+    func dim(T) = dim,
+    (some [TV] func value(T) = TV => generic_math(TV))
+].
+
+:- instance dimmed_value(dim).
+:- instance dimmed_value(list(T)) <= dimmed_value(T).
+
+:- type dim
+    ---> base(base_quantity)
+    ;    product(list(dim))
+    ;    power(dim, int).
+
+%:- inst dim
+%    ---> base(ground)
+%    ;    product(list_skel(dim))
+%    ;    power(dim, ground)
+%    .
+
 :- type base_quantity
     ---> time
     ;    mass
@@ -24,34 +43,12 @@
     ;    luminous_intensity
     ;    amound_of_substance.
 
-%:- type dimmed_value(TD, TV)
-%    --->    dimmed_value(
-%                        value :: TV,
-%                        dimension :: TD
-%            ).
+:- type dimmed_value(TV, TD)
+    --->    dimmed_value(TV, TD).
 
-% :- type dimmed_value == dimmed_value(float, dim).
+:- type dimmed_value == dimmed_value(dim, float).
 
-
-:- typeclass dim(T) where [
-    func dim(T) = dim,
-    (some [TV] func value(T) = TV => generic_math(TV))
-].
-
-:- instance dim(dim).
-:- instance dim(list(T)) <= dim(T).
-
-:- type dim
-    ---> base(base_quantity)
-    ;    product(list(dim))
-    ;    power(dim, int).
-
-:- inst dim
-    ---> base(ground)
-    ;    product(list_skel(dim))
-    ;    power(dim, ground)
-    .
-
+%------------------------------------------------------------------------------%
 
 :- func m = dim.
 :- func metre = dim.
@@ -66,11 +63,11 @@
 :- func 'K' = dim.
 :- func kelvin = dim.
 
-:- func T ** int = dim <= dim(T).
+:- func T ** int = dim <= dimmed_value(T).
 
-:- func T1 * T2  = dim <= (dim(T1), dim(T2)).
+:- func T1 * T2  = dim <= (dimmed_value(T1), dimmed_value(T2)).
 
-:- func T1 / T2  = dim <= (dim(T1), dim(T2)).
+:- func T1 / T2  = dim <= (dimmed_value(T1), dimmed_value(T2)).
 
 % :- func exp(dim, int) = dim.
 
@@ -85,12 +82,12 @@
 :- import_module exception.
 :- use_module math.
 
-:- instance dim(dim) where [
+:- instance dimmed_value(dim) where [
     (dim(Dim) = Dim),
     (value(_) = 1.0)
 ].
 
-:- instance dim(list(T)) <= dim(T) where [
+:- instance dimmed_value(list(T)) <= dimmed_value(T) where [
     (dim(List) = product(map(dim, List))),
     (value(_)  = 1.0)
 ].
