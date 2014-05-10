@@ -2,7 +2,7 @@
 % vim: ft=mercury ff=unix ts=4 sw=4 et
 % File: si_units.m
 % Main author: Sebastian Godelet <sebastian.godelet+github@gmail.com>
-% Copyright (C): 2014
+% Copyright (C) 2014 Sebastian Godelet
 % Created on: Sat 10 May 11:00:45 CEST 2014
 %
 %------------------------------------------------------------------------------%
@@ -15,24 +15,28 @@
 :- import_module list.
 :- import_module generic_math.
 
+:- type scale == float.
+
 :- typeclass dimmed_value(T) where [
     func dim(T) = dim,
-    (some [TV] func value(T) = TV => generic_math(TV))
+    func scale(T) = scale
 ].
 
 :- instance dimmed_value(dim).
 :- instance dimmed_value(list(T)) <= dimmed_value(T).
+:- instance dimmed_value(dimmed_value(T)) <= dimmed_value(T).
 
 :- type dim
-    ---> base(base_quantity)
+    ---> zero
+    ;    unit(base_quantity)
     ;    product(list(dim))
     ;    power(dim, int).
 
-%:- inst dim
-%    ---> base(ground)
-%    ;    product(list_skel(dim))
-%    ;    power(dim, ground)
-%    .
+:- inst dim
+    ---> zero
+    ;    unit(ground)
+    ;    product(list_skel(dim))
+    ;    power(dim, ground).
 
 :- type base_quantity
     ---> time
@@ -41,35 +45,45 @@
     ;    length
     ;    electric_current
     ;    luminous_intensity
-    ;    amound_of_substance.
+    ;    amount_of_substance.
 
-:- type dimmed_value(TV, TD)
-    --->    dimmed_value(TV, TD).
+:- type dimmed_value(T) ---> dimmed_value(scale, T).
 
-:- type dimmed_value == dimmed_value(dim, float).
+:- type dimmed_value == dimmed_value(dim).
 
 %------------------------------------------------------------------------------%
 
-:- func m = dim.
 :- func metre = dim.
-% :- func 'AU' = dimmed_value.
+:- func m = dim.
+:- func 'AU' = dimmed_value.
+:- func lightyear = dimmed_value.
+:- func ly = dimmed_value.
 
-:- func s = dim.
 :- func second = dim.
+:- func s = dim.
 
-:- func kg = dim.
 :- func kilogram = dim.
+:- func kg = dim.
 
-:- func 'K' = dim.
 :- func kelvin = dim.
+:- func 'K' = dim.
 
-:- func T ** int = dim <= dimmed_value(T).
+:- func candela = dim.
+:- func cd = dim.
 
-:- func T1 * T2  = dim <= (dimmed_value(T1), dimmed_value(T2)).
+:- func mole = dim.
+:- func mol = dim.
 
-:- func T1 / T2  = dim <= (dimmed_value(T1), dimmed_value(T2)).
+:- func ampere = dim.
+:- func 'A' = dim.
 
-% :- func exp(dim, int) = dim.
+:- func T ** int = dimmed_value <= dimmed_value(T).
+
+:- func T1 * T2  = dimmed_value <= (dimmed_value(T1), dimmed_value(T2)).
+
+:- func T1 / T2  = dimmed_value <= (dimmed_value(T1), dimmed_value(T2)).
+
+:- func exp(T, int) = dimmed_value <= dimmed_value(T).
 
 :- pred main(io::di, io::uo) is det.
 
@@ -82,18 +96,24 @@
 :- import_module exception.
 :- use_module math.
 
+:- instance dimmed_value(dimmed_value(T)) <= dimmed_value(T) where [
+    (dim(dimmed_value(_Scale, Dim)) = dim(Dim)),
+    (scale(dimmed_value(Scale, _Dim)) = Scale)
+].
+
 :- instance dimmed_value(dim) where [
     (dim(Dim) = Dim),
-    (value(_) = 1.0)
+    (scale(_) = 1.0)
 ].
 
 :- instance dimmed_value(list(T)) <= dimmed_value(T) where [
     (dim(List) = product(map(dim, List))),
-    (value(_)  = 1.0)
+    (scale(_)  = 1.0)
 ].
 
-Base ** Exp =
-    ( dim(Base) = base(_) ->
+Base ** Exp = dimmed_value(scale(Dim), Dim) :-
+    Dim =
+    ( dim(Base) = unit(_) ->
         power(dim(Base), Exp)
     ; dim(Base) = power(BaseUnit0, Exp0) ->
         power(BaseUnit0, Exp0 * Exp)
@@ -101,14 +121,17 @@ Base ** Exp =
         unexpected($file, $pred, "not implemented yet")
     ).
 
-Multiplicand * Multiplier = Product :-
-    Md = dim(Multiplicand),
-    Mr = dim(Multiplier),
-    Product =
+Multiplicand * Multiplier = dimmed_value(Scale, Dim) :-
+    Scale = times(scale(Multiplicand), scale(Multiplier)),
+    Dim   = times(dim(Multiplicand), dim(Multiplier)).
+
+:- func times(dim, dim) = dim.
+
+times(Md, Mr) =
     (
-        Md = base(Base1)
+        Md = unit(Base1)
     ->
-        ( Mr = base(Base2) ->
+        ( Mr = unit(Base2) ->
             ( Base1 = Base2 ->
                 power(Md, 2)
             ;
@@ -147,22 +170,36 @@ Multiplicand * Multiplier = Product :-
         unexpected($file, $pred, "unsupported dimension product")
     ).
 
-Divident / Divisor = dim(Divident * power(dim(Divisor), -1)).
+Divident / Divisor = dimmed_value(Scale, Dim) :-
+    Scale = divide(scale(Divident), scale(Divisor)),
+    Dim = dim(Divident) `times` power(dim(Divisor), -1).
 
-% exp(Dim, Scale) = Dim-math.pow(10.0, to_float(Scale)).
+exp(Value, Exp) = dimmed_value(Scale, dim(Value)) :-
+    Scale = times(scale(Value), math.pow(10.0, to_float(Exp))).
 
-m  = base(length).
-metre  = base(length).
-% 'AU' = base(length)-1495078707000.0.
+metre = unit(length).
+m = metre.
+'AU' = dimmed_value(149597870700.0, m).
+lightyear = dimmed_value(9.4605284e15, m).
+ly = lightyear.
 
-s  = base(time).
-second  = base(time).
+second  = unit(time).
+s = second.
 
-kg = base(mass).
-kilogram = base(mass).
+kilogram = unit(mass).
+kg = kilogram.
 
-'K' = base(temperature).
-kelvin = base(temperature).
+kelvin = unit(temperature).
+'K' = kelvin.
+
+candela = unit(luminous_intensity).
+cd = candela.
+
+mole = unit(amount_of_substance).
+mol = mole.
+
+ampere = unit(electric_current).
+'A' = ampere.
 
 %------------------------------------------------------------------------------%
 
@@ -170,8 +207,10 @@ main(!IO) :-
     print_test("Velocity", m / s, !IO),
     print_test("Acceleration", m * s ** -2, !IO),
     print_test("Hertz", s ** -1, !IO),
-   % print_test("nano metres", m `exp` -9, !IO),
-    print_test("cube metres", m * m * m, !IO).
+    print_test("nano metres", m `exp` -9, !IO),
+    print_test("cube metres", m * m * m, !IO),
+    print_test("AU", 'AU', !IO),
+    print_test("lightyear", ly, !IO).
 
 :- pred print_test(string::in, T::in, io::di, io::uo) is det.
 
