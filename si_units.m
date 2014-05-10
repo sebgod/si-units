@@ -84,7 +84,7 @@
 
 :- func T1 / T2  = dimmed_value <= (dimmed_value(T1), dimmed_value(T2)).
 
-:- func exp(T, int) = dimmed_value <= dimmed_value(T).
+:- func exp(T, scale) = dimmed_value <= dimmed_value(T).
 
 :- pred main(io::di, io::uo) is det.
 
@@ -95,7 +95,6 @@
 
 :- import_module require.
 :- import_module exception.
-:- use_module math.
 
  :- instance dimmed_value(dimmed_value(T)) <= dimmed_value(T) where [
     (dim(dimmed_value(_Scale, Dim)) = dim(Dim)),
@@ -190,7 +189,7 @@ Divident / Divisor = dimmed_value(Scale, Dim) :-
     Dim = dim(Divident) `times` power(dim(Divisor), -1).
 
 exp(Value, Exp) = dimmed_value(Scale, dim(Value)) :-
-    Scale = scale(Value) * math.pow(10.0, to_float(Exp)).
+    Scale = scale(Value) * 10.0 ** Exp.
 
 metre = unit(length).
 m = metre.
@@ -222,7 +221,7 @@ main(!IO) :-
     print_test("Velocity", m/s, !IO),
     print_test("Acceleration", m/s**2, !IO),
     print_test("Hertz", 1.0/s, !IO),
-    print_test("nano metres", m `exp` -9, !IO),
+    print_test("nano metres", m `exp` -9.0, !IO),
     print_test("millimetres", 1.0e-3 * m, !IO),
     print_test("cube metres", m * m * m, !IO),
     print_test("AU", 'AU', !IO),
