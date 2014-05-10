@@ -1,0 +1,14 @@
+Mercury/
+si_units
+.*.swp
+tags
+*.mh
+*.err
+*.init
+*.dll
+*.exe
+*.a
+*.so
+*.jar
+*.dylib
+*.beams
