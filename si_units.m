@@ -92,11 +92,11 @@
     (value(_)  = 1.0)
 ].
 
-Dim ** Exp =
-    ( dim(Dim) = base(_) ->
-        power(dim(Dim), Exp)
-    ; dim(Dim) = power(Base, Exp0) ->
-        power(Base, Exp0 * Exp)
+Base ** Exp =
+    ( dim(Base) = base(_) ->
+        power(dim(Base), Exp)
+    ; dim(Base) = power(BaseUnit0, Exp0) ->
+        power(BaseUnit0, Exp0 * Exp)
     ;
         unexpected($file, $pred, "not implemented yet")
     ).
