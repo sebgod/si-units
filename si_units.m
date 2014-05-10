@@ -25,6 +25,7 @@
 :- instance dimmed_value(dim).
 :- instance dimmed_value(list(T)) <= dimmed_value(T).
 :- instance dimmed_value(dimmed_value(T)) <= dimmed_value(T).
+:- instance dimmed_value(scale).
 
 :- type dim
     ---> zero
@@ -96,7 +97,7 @@
 :- import_module exception.
 :- use_module math.
 
-:- instance dimmed_value(dimmed_value(T)) <= dimmed_value(T) where [
+ :- instance dimmed_value(dimmed_value(T)) <= dimmed_value(T) where [
     (dim(dimmed_value(_Scale, Dim)) = dim(Dim)),
     (scale(dimmed_value(Scale, _Dim)) = Scale)
 ].
@@ -111,24 +112,38 @@
     (scale(_)  = 1.0)
 ].
 
+:- instance dimmed_value(scale) where [
+    (dim(_) = zero),
+    (scale(Scale) = Scale)
+].
+
 Base ** Exp = dimmed_value(scale(Dim), Dim) :-
+    Dim0 = dim(Base),
     Dim =
-    ( dim(Base) = unit(_) ->
-        power(dim(Base), Exp)
-    ; dim(Base) = power(BaseUnit0, Exp0) ->
+    ( Dim0 = unit(_) ->
+        power(Dim0, Exp)
+    ; Dim0 = power(BaseUnit0, Exp0) ->
         power(BaseUnit0, Exp0 * Exp)
     ;
         unexpected($file, $pred, "not implemented yet")
     ).
 
 Multiplicand * Multiplier = dimmed_value(Scale, Dim) :-
-    Scale = times(scale(Multiplicand), scale(Multiplier)),
+    Scale = scale(Multiplicand) * scale(Multiplier),
     Dim   = times(dim(Multiplicand), dim(Multiplier)).
 
 :- func times(dim, dim) = dim.
 
 times(Md, Mr) =
     (
+        Md = zero
+    ->
+        Mr
+    ;
+        Mr = zero
+    ->
+        Md
+    ;
         Md = unit(Base1)
     ->
         ( Mr = unit(Base2) ->
@@ -175,7 +190,7 @@ Divident / Divisor = dimmed_value(Scale, Dim) :-
     Dim = dim(Divident) `times` power(dim(Divisor), -1).
 
 exp(Value, Exp) = dimmed_value(Scale, dim(Value)) :-
-    Scale = times(scale(Value), math.pow(10.0, to_float(Exp))).
+    Scale = scale(Value) * math.pow(10.0, to_float(Exp)).
 
 metre = unit(length).
 m = metre.
@@ -204,10 +219,11 @@ ampere = unit(electric_current).
 %------------------------------------------------------------------------------%
 
 main(!IO) :-
-    print_test("Velocity", m / s, !IO),
-    print_test("Acceleration", m * s ** -2, !IO),
-    print_test("Hertz", s ** -1, !IO),
+    print_test("Velocity", m/s, !IO),
+    print_test("Acceleration", m/s**2, !IO),
+    print_test("Hertz", 1.0/s, !IO),
     print_test("nano metres", m `exp` -9, !IO),
+    print_test("millimetres", 1.0e-3 * m, !IO),
     print_test("cube metres", m * m * m, !IO),
     print_test("AU", 'AU', !IO),
     print_test("lightyear", ly, !IO).
