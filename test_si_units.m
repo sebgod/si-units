@@ -37,9 +37,9 @@ area(rect(A, B)) = A * B.
 
 main(!IO) :-
     print_test("Unit of length", metre, !IO),
-    print_test("4m + 6m", 4.0*m + 6.0*m, !IO),
-    print_test("30s - 2s", 30.0*s - 2.0*s, !IO),
-    print_test("celsius", 273.15 + kelvin, !IO),
+    print_test("4 m + 6 m", 4.0*m + 6.0*m, !IO),
+    print_test("30 s - 2 s", 30.0*s - 2.0*s, !IO),
+    print_test("[°C]", kelvin - 273.15, !IO),
     print_test("Area rect(2m, 3m)", area(rect(2.0*m, 3.0*m)), !IO),
     print_test("Velocity", m/s, !IO),
     print_test("Acceleration", m/(s**2), !IO),

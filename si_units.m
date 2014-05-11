@@ -309,7 +309,9 @@ dimmed_value_to_doc(dimmed_value(Scale, Dim)) =
     ( if Scale = 1.0, Dim \= one then
         dim_to_doc(Dim)
       else
-        group([format(Scale), dim_to_doc(Dim)])
+        group([format(Scale),
+               str(if Dim \= one then " " else ""),
+               dim_to_doc(Dim)])
     ).
 
 dim_to_doc(Dim) =
