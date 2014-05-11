@@ -33,12 +33,14 @@
 :- type dim
     ---> one
     ;    unit(base_quantity)
+    ;    sum(list(dim))
     ;    product(list(dim))
     ;    power(dim, exp).
 
 :- inst dim
     ---> one
     ;    unit(ground)
+    ;    sum(list_skel(dim))
     ;    product(list_skel(dim))
     ;    power(dim, ground).
 
@@ -68,31 +70,41 @@
 %:- type si_derived == ((func) = dimmed_value).
 %:- inst si_derived == ((func) = (out(dimmed_value)) is det).
 
-:- func metre     `with_type` si_const `with_inst` si_const.
-:- func m         `with_type` si_const `with_inst` si_const.
+:- func metre `with_type` si_const `with_inst` si_const.
+:- func m     `with_type` si_const `with_inst` si_const.
 
 % `with_type` si_derived `with_inst` si_derived..
+:- func astronomical_unit = dimmed_value.
 :- func 'AU'      = dimmed_value.
+
 :- func lightyear = dimmed_value.
 :- func ly        = dimmed_value.
 
-:- func second = (dim::out(dim)) is det.
-:- func s = (dim::out(dim)) is det.
+:- func parsec = dimmed_value.
+:- func pc     = dimmed_value.
 
-:- func kilogram = (dim::out(dim)) is det.
-:- func kg = (dim::out(dim)) is det.
+:- func second `with_type` si_const `with_inst` si_const.
+:- func s      `with_type` si_const `with_inst` si_const.
 
-:- func kelvin = dim.
-:- func 'K' = dim.
+:- func kilogram `with_type` si_const `with_inst` si_const.
+:- func kg       `with_type` si_const `with_inst` si_const.
 
-:- func candela = dim.
-:- func cd = dim.
+:- func kelvin `with_type` si_const `with_inst` si_const.
+:- func 'K'    `with_type` si_const `with_inst` si_const.
 
-:- func mole = dim.
-:- func mol = dim.
+:- func candela `with_type` si_const `with_inst` si_const.
+:- func cd      `with_type` si_const `with_inst` si_const.
 
-:- func ampere = dim.
-:- func 'A' = dim.
+:- func mole  `with_type` si_const `with_inst` si_const.
+:- func mol   `with_type` si_const `with_inst` si_const.
+
+:- func ampere `with_type` si_const `with_inst` si_const.
+:- func 'A'    `with_type` si_const `with_inst` si_const.
+
+:- func rad   `with_type` si_const `with_inst` si_const.
+:- func turn   = dimmed_value.
+:- func degree = dimmed_value.
+:- func '°'    = dimmed_value.
 
 :- func T ** TExp = dimmed_value
     <= (scalar_generic_math(TExp), dimmed_value(T)).
@@ -107,7 +119,13 @@
 
 :- func T1 / T2  = dimmed_value <= (dimmed_value(T1), dimmed_value(T2)).
 
+:- func T1 + T2  = dimmed_value <= (dimmed_value(T1), dimmed_value(T2)).
+
+:- func T1 - T2  = dimmed_value <= (dimmed_value(T1), dimmed_value(T2)).
+
 :- func exp(T, int) = dimmed_value <= dimmed_value(T).
+
+:- func dimmed_value_to_doc(dimmed_value) = doc.
 
 :- func dim_to_doc(dim) = doc.
 
@@ -122,10 +140,11 @@
 
 :- import_module require.
 :- import_module exception.
+:- use_module math.
+    % For pretty printing
 :- import_module type_desc.
 :- import_module univ.
 :- import_module deconstruct.
-    % For pretty printing
 :- import_module char.
 :- import_module string.
 :- use_module integer.
@@ -223,6 +242,10 @@ times(Md, Mr) =
 
 Divident / Divisor = Divident * Divisor ** (-1).
 
+Augend + Addend = 0.0 * one. % dimmed_value(1.0, sum([Augend, Addend])).
+
+Minuend - Subtrahend = Minuend + (-1.0 * Subtrahend ).
+
 exp(Value, Exp) = dimmed_value(Scale, dim(Value)) :-
     Scale = scale(Value) * 10.0 ** to_float(Exp).
 
@@ -230,9 +253,15 @@ exp(Value, Exp) = dimmed_value(Scale, dim(Value)) :-
 
 metre = unit(length).
 m = metre.
-'AU' = 149597870700.0 * m.
+
+astronomical_unit = 149597870700.0 * m.
+'AU' = astronomical_unit.
+
 lightyear = 9.4605284e15 * m.
 ly = lightyear.
+
+parsec = 3.0857e16 * m.
+pc = parsec.
 
 second  = unit(time).
 s = second.
@@ -252,9 +281,21 @@ mol = mole.
 ampere = unit(electric_current).
 'A' = ampere.
 
+:- func pi_rad = dimmed_value.
+
+pi_rad = math.pi * rad.
+
+rad = one.
+turn = 2.0 * pi_rad.
+degree = math.pi / 180.0.
+'°' = degree.
+
 %------------------------------------------------------------------------------%
 % Pretty print routines to nicely format all SI Units and derived units
 %------------------------------------------------------------------------------%
+
+dimmed_value_to_doc(dimmed_value(Scale, Dim)) =
+    group([format(Scale), dim_to_doc(Dim)]).
 
 dim_to_doc(Dim) =
     ( Dim = unit(Unit) ->
@@ -273,12 +314,14 @@ dim_to_doc(Dim) =
         ; Unit = luminous_intensity ->
             str("cd")
         ;
-            format_univ(univ(Unit))
+            str("?dim:unit(unknown)?")
         )
     ; Dim = power(Base, Exp) ->
         docs([dim_to_doc(Base), exp_to_doc(Exp)])
     ; Dim = product(Product) ->
-        format_list(map((func(D) = univ(D)), Product), str("⋅"))
+        format_list(map_to_univ(Product), str("⋅"))
+    ; Dim = sum(Sum) ->
+        format_list(map_to_univ(Sum), str(" + "))
     ;
         str("?dim:unknown?")
     ).
@@ -289,12 +332,16 @@ exp_to_doc(Exp) = Doc :-
     Doc =
     ( Denom = integer.one ->
         str(integer_to_sup_str(Numer))
-    ; Demom = to_integer(2), Numer = integer.one ->
+    ; Denom = to_integer(2), Numer = integer.one ->
         str("½")
     ;
         docs([str("⁽"), str(integer_to_sup_str(Numer)),
               str("⁄"), str(integer_to_sub_str(Denom)),  str("₎")])
     ).
+
+:- func map_to_univ(list(T)) = list(univ).
+
+map_to_univ(List) = map((func(E) = univ(E)), List).
 
 :- func integer_to_sup_str(integer.integer) = string.
 
@@ -392,12 +439,22 @@ init(!IO) :-
 :- pred unit_formatter(formatter_map::in, formatter_map::out) is det.
 
 unit_formatter(!Fmt) :-
-    set_formatter_sv($module, "dim", 0, fmt_dimmed_value, !Fmt).
+    set_formatter_sv($module, "dim", 0, fmt_dim, !Fmt),
+    set_formatter_sv($module, "dimmed_value", 1, fmt_dimmed_value, !Fmt).
+
+:- func fmt_dim(univ, list(type_desc)) = doc.
+
+fmt_dim(Univ, _Args) =
+    ( if Univ = univ(X) then dim_to_doc(X) else  str("?dim?") ).
 
 :- func fmt_dimmed_value(univ, list(type_desc)) = doc.
 
 fmt_dimmed_value(Univ, _Args) =
-    ( if Univ = univ(X) then dim_to_doc(X) else  str("?dim?") ).
+    ( Univ = univ(X) ->
+        dimmed_value_to_doc(X)
+    ;
+        str("?dimmed_value?")
+    ).
 
 :- pred set_formatter_sv(string::in, string::in, int::in, formatter::in,
     formatter_map::in, formatter_map::out) is det.
