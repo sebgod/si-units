@@ -14,6 +14,7 @@
 :- import_module io.
 :- import_module list.
 :- import_module generic_math.
+:- import_module pretty_printer.
 :- use_module rational.
 
 :- type scale == float.  % TODO somehow use generic math type
@@ -62,15 +63,18 @@
 %------------------------------------------------------------------------------%
 
 :- type si_const == ((func) = dim).
-
 :- inst si_const == ((func) = (out(dim)) is det).
-:- inst si_derived == ((func) = (out(dimmed_value)) is det).
 
-:- func metre `with_type` si_const `with_inst` si_const.
-:- func m `with_type` si_const `with_inst` si_const.
-:- func 'AU' = dimmed_value.
+%:- type si_derived == ((func) = dimmed_value).
+%:- inst si_derived == ((func) = (out(dimmed_value)) is det).
+
+:- func metre     `with_type` si_const `with_inst` si_const.
+:- func m         `with_type` si_const `with_inst` si_const.
+
+% `with_type` si_derived `with_inst` si_derived..
+:- func 'AU'      = dimmed_value.
 :- func lightyear = dimmed_value.
-:- func ly = dimmed_value.
+:- func ly        = dimmed_value.
 
 :- func second = (dim::out(dim)) is det.
 :- func s = (dim::out(dim)) is det.
@@ -105,6 +109,10 @@
 
 :- func exp(T, int) = dimmed_value <= dimmed_value(T).
 
+:- func dim_to_doc(dim) = doc.
+
+:- func exp_to_doc(exp) = doc.
+
 :- pred main(io::di, io::uo) is det.
 
 %------------------------------------------------------------------------------%
@@ -114,6 +122,13 @@
 
 :- import_module require.
 :- import_module exception.
+:- import_module type_desc.
+:- import_module univ.
+:- import_module deconstruct.
+    % For pretty printing
+:- import_module char.
+:- import_module string.
+:- use_module integer.
 
  :- instance dimmed_value(dimmed_value(T)) <= dimmed_value(T) where [
     (dim(dimmed_value(_Scale, Dim)) = dim(Dim)),
@@ -134,6 +149,8 @@
     (dim(_) = one),
     (scale(Scale) = Scale)
 ].
+
+%------------------------------------------------------------------------------%
 
 Base ** Exp = dimmed_value(scale(Dim), Dim) :-
     Dim0 = dim(Base),
@@ -204,12 +221,12 @@ times(Md, Mr) =
         unexpected($file, $pred, "unsupported dimension product")
     ).
 
-Divident / Divisor = dimmed_value(Scale, Dim) :-
-    Scale = divide(scale(Divident), scale(Divisor)),
-    Dim = dim(Divident) `times` power(dim(Divisor), to_rational(-1)).
+Divident / Divisor = Divident * Divisor ** (-1).
 
 exp(Value, Exp) = dimmed_value(Scale, dim(Value)) :-
     Scale = scale(Value) * 10.0 ** to_float(Exp).
+
+%------------------------------------------------------------------------------%
 
 metre = unit(length).
 m = metre.
@@ -236,6 +253,98 @@ ampere = unit(electric_current).
 'A' = ampere.
 
 %------------------------------------------------------------------------------%
+% Pretty print routines to nicely format all SI Units and derived units
+%------------------------------------------------------------------------------%
+
+dim_to_doc(Dim) =
+    ( Dim = unit(Unit) ->
+        ( Unit = length ->
+            str("m")
+        ; Unit = time ->
+            str("s")
+        ; Unit = mass ->
+            str("kg")
+        ; Unit = temperature ->
+            str("K")
+        ; Unit = amount_of_substance ->
+            str("mol")
+        ; Unit = electric_current ->
+            str("A")
+        ; Unit = luminous_intensity ->
+            str("cd")
+        ;
+            format_univ(univ(Unit))
+        )
+    ; Dim = power(Base, Exp) ->
+        docs([dim_to_doc(Base), exp_to_doc(Exp)])
+    ; Dim = product(Product) ->
+        format_list(map((func(D) = univ(D)), Product), str("⋅"))
+    ;
+        str("?dim:unknown?")
+    ).
+
+exp_to_doc(Exp) = Doc :-
+    Numer = rational.numer(Exp),
+    Denom = rational.denom(Exp),
+    Doc =
+    ( Denom = integer.one ->
+        str(integer_to_sup_str(Numer))
+    ; Demom = to_integer(2), Numer = integer.one ->
+        str("½")
+    ;
+        docs([str("⁽"), str(integer_to_sup_str(Numer)),
+              str("⁄"), str(integer_to_sub_str(Denom)),  str("₎")])
+    ).
+
+:- func integer_to_sup_str(integer.integer) = string.
+
+integer_to_sup_str(Integer) = integer_filter_map_str(digit_to_sup, Integer).
+
+:- func integer_to_sub_str(integer.integer) = string.
+
+integer_to_sub_str(Integer) = integer_filter_map_str(digit_to_sub, Integer).
+
+:- func integer_filter_map_str((func(char) = char), integer.integer) = string.
+:- mode integer_filter_map_str(in((func(in) = out) is semidet), in) = out.
+
+integer_filter_map_str(Filter, Integer) =
+    from_char_list(filter_map(Filter,
+                    to_char_list(integer.to_string(Integer)))).
+
+
+:- func digit_to_sup(char) = char is semidet.
+
+digit_to_sup('0') = '⁰'.
+digit_to_sup('1') = '¹'.
+digit_to_sup('2') = '²'.
+digit_to_sup('3') = '³'.
+digit_to_sup('4') = '⁴'.
+digit_to_sup('5') = '⁵'.
+digit_to_sup('6') = '⁶'.
+digit_to_sup('7') = '⁷'.
+digit_to_sup('8') = '⁸'.
+digit_to_sup('9') = '⁹'.
+digit_to_sup('+') = '⁺'.
+digit_to_sup('-') = '⁻'.
+
+:- func digit_to_sub(char) = char is semidet.
+
+digit_to_sub('0') = '₀'.
+digit_to_sub('1') = '₁'.
+digit_to_sub('2') = '₂'.
+digit_to_sub('3') = '₃'.
+digit_to_sub('4') = '₄'.
+digit_to_sub('5') = '₅'.
+digit_to_sub('6') = '₆'.
+digit_to_sub('7') = '₇'.
+digit_to_sub('8') = '₈'.
+digit_to_sub('9') = '₉'.
+digit_to_sub('+') = '₊'.
+digit_to_sub('-') = '₋'.
+
+%------------------------------------------------------------------------------%
+% Test code for area, goal is to have compile time type checking
+%------------------------------------------------------------------------------%
 
 :- type rect
     ---> rect(dimmed_value, dimmed_value).
@@ -248,9 +357,10 @@ ampere = unit(electric_current).
 area(rect(A, B)) = A * B.
 
 main(!IO) :-
+    print_test("Unit of length", metre, !IO),
     print_test("Area rect(2m, 3m)", area(rect(2.0*m, 3.0*m)), !IO),
     print_test("Velocity", m/s, !IO),
-    print_test("Acceleration", m/s**2, !IO),
+    print_test("Acceleration", m/(s**2), !IO),
     print_test("Hertz", 1.0/s, !IO),
     print_test("nano metres", m `exp` -9, !IO),
     print_test("millimetres", 1.0e-3*m, !IO),
@@ -263,7 +373,37 @@ main(!IO) :-
 print_test(Name, Entity, !IO) :-
     io.print(Name, !IO),
     io.print(" = ", !IO),
-    io.write_line(Entity, !IO).
+    write_doc(format(Entity), !IO),
+    io.nl(!IO).
+
+%------------------------------------------------------------------------------%
+% Initialisation code for pretty printing
+%------------------------------------------------------------------------------%
+
+:- initialise init/2.
+
+:- pred init(io::di, io::uo) is det.
+
+init(!IO) :-
+    get_default_formatter_map(Fmt0, !IO),
+    unit_formatter(Fmt0, Fmt),
+    set_default_formatter_map(Fmt, !IO).
+
+:- pred unit_formatter(formatter_map::in, formatter_map::out) is det.
+
+unit_formatter(!Fmt) :-
+    set_formatter_sv($module, "dim", 0, fmt_dimmed_value, !Fmt).
+
+:- func fmt_dimmed_value(univ, list(type_desc)) = doc.
+
+fmt_dimmed_value(Univ, _Args) =
+    ( if Univ = univ(X) then dim_to_doc(X) else  str("?dim?") ).
+
+:- pred set_formatter_sv(string::in, string::in, int::in, formatter::in,
+    formatter_map::in, formatter_map::out) is det.
+
+set_formatter_sv(ModuleName, TypeName, Arity, Formatter, FMap0, FMap) :-
+    FMap = set_formatter(ModuleName, TypeName, Arity, Formatter, FMap0).
 
 %------------------------------------------------------------------------------%
 :- end_module si_units.

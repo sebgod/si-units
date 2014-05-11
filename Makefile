@@ -1,5 +1,5 @@
 MMC=mmc
-MCFLAGS=--use-grade-subdirs --infer-all
+MCFLAGS=--use-grade-subdirs
 MLLIBS=--ml generic_math
 
 .PHONY: test
