@@ -14,8 +14,10 @@
 :- import_module io.
 :- import_module list.
 :- import_module generic_math.
+:- use_module rational.
 
-:- type scale == float.
+:- type scale == float.  % TODO somehow use generic math type
+:- type exp == rational.rational.
 
 :- typeclass dimmed_value(T) where [
     func dim(T) = dim,
@@ -28,13 +30,13 @@
 :- instance dimmed_value(scale).
 
 :- type dim
-    ---> zero
+    ---> one
     ;    unit(base_quantity)
     ;    product(list(dim))
-    ;    power(dim, int).
+    ;    power(dim, exp).
 
 :- inst dim
-    ---> zero
+    ---> one
     ;    unit(ground)
     ;    product(list_skel(dim))
     ;    power(dim, ground).
@@ -52,19 +54,29 @@
 
 :- type dimmed_value == dimmed_value(dim).
 
+:- inst dimmed_value
+    ---> dimmed_value(unique, dim).
+
+:- inst metre ---> dimmed_value(ground, bound(length)).
+
 %------------------------------------------------------------------------------%
 
-:- func metre = dim.
-:- func m = dim.
+:- type si_const == ((func) = dim).
+
+:- inst si_const == ((func) = (out(dim)) is det).
+:- inst si_derived == ((func) = (out(dimmed_value)) is det).
+
+:- func metre `with_type` si_const `with_inst` si_const.
+:- func m `with_type` si_const `with_inst` si_const.
 :- func 'AU' = dimmed_value.
 :- func lightyear = dimmed_value.
 :- func ly = dimmed_value.
 
-:- func second = dim.
-:- func s = dim.
+:- func second = (dim::out(dim)) is det.
+:- func s = (dim::out(dim)) is det.
 
-:- func kilogram = dim.
-:- func kg = dim.
+:- func kilogram = (dim::out(dim)) is det.
+:- func kg = (dim::out(dim)) is det.
 
 :- func kelvin = dim.
 :- func 'K' = dim.
@@ -78,13 +90,20 @@
 :- func ampere = dim.
 :- func 'A' = dim.
 
-:- func T ** int = dimmed_value <= dimmed_value(T).
+:- func T ** TExp = dimmed_value
+    <= (scalar_generic_math(TExp), dimmed_value(T)).
+%:- mode (in(dim) ** in(unique)) = out(dimmed_value) is det.
 
 :- func T1 * T2  = dimmed_value <= (dimmed_value(T1), dimmed_value(T2)).
+%:- mode (in(dim) * in(dimmed_value)) = out(dimmed_value) is det.
+%:- mode (in(dimmed_value) * in(dim)) = out(dimmed_value) is det.
+%:- mode (in(dimmed_value) * in(unique)) = out(dimmed_value) is det.
+%:- mode (in(unique) * in(dimmed_value)) = out(dimmed_value) is det.
+%:- mode (in(dimmed_value) * in(dimmed_value)) = out(dimmed_value) is det.
 
 :- func T1 / T2  = dimmed_value <= (dimmed_value(T1), dimmed_value(T2)).
 
-:- func exp(T, scale) = dimmed_value <= dimmed_value(T).
+:- func exp(T, int) = dimmed_value <= dimmed_value(T).
 
 :- pred main(io::di, io::uo) is det.
 
@@ -112,17 +131,18 @@
 ].
 
 :- instance dimmed_value(scale) where [
-    (dim(_) = zero),
+    (dim(_) = one),
     (scale(Scale) = Scale)
 ].
 
 Base ** Exp = dimmed_value(scale(Dim), Dim) :-
     Dim0 = dim(Base),
+    Exp1 = to_rational(Exp),
     Dim =
     ( Dim0 = unit(_) ->
-        power(Dim0, Exp)
+        power(Dim0, Exp1)
     ; Dim0 = power(BaseUnit0, Exp0) ->
-        power(BaseUnit0, Exp0 * Exp)
+        power(BaseUnit0, Exp0 * Exp1)
     ;
         unexpected($file, $pred, "not implemented yet")
     ).
@@ -135,11 +155,11 @@ Multiplicand * Multiplier = dimmed_value(Scale, Dim) :-
 
 times(Md, Mr) =
     (
-        Md = zero
+        Md = one
     ->
         Mr
     ;
-        Mr = zero
+        Mr = one
     ->
         Md
     ;
@@ -147,7 +167,7 @@ times(Md, Mr) =
     ->
         ( Mr = unit(Base2) ->
             ( Base1 = Base2 ->
-                power(Md, 2)
+                power(Md, to_rational(2))
             ;
                 product([Md, Mr])
             )
@@ -168,7 +188,7 @@ times(Md, Mr) =
         ; Mr = product(Prod1) ->
             product([Md] ++ Prod1)
         ; Mr = Base1 ->
-            power(Base1, Exp1 + 1)
+            power(Base1, Exp1 + rational.one)
         ;
             product([Md] ++ [Mr])
         )
@@ -186,15 +206,15 @@ times(Md, Mr) =
 
 Divident / Divisor = dimmed_value(Scale, Dim) :-
     Scale = divide(scale(Divident), scale(Divisor)),
-    Dim = dim(Divident) `times` power(dim(Divisor), -1).
+    Dim = dim(Divident) `times` power(dim(Divisor), to_rational(-1)).
 
 exp(Value, Exp) = dimmed_value(Scale, dim(Value)) :-
-    Scale = scale(Value) * 10.0 ** Exp.
+    Scale = scale(Value) * 10.0 ** to_float(Exp).
 
 metre = unit(length).
 m = metre.
-'AU' = dimmed_value(149597870700.0, m).
-lightyear = dimmed_value(9.4605284e15, m).
+'AU' = 149597870700.0 * m.
+lightyear = 9.4605284e15 * m.
 ly = lightyear.
 
 second  = unit(time).
@@ -217,13 +237,24 @@ ampere = unit(electric_current).
 
 %------------------------------------------------------------------------------%
 
+:- type rect
+    ---> rect(dimmed_value, dimmed_value).
+:- inst rect
+    ---> rect(metre, metre).
+
+:- func area(rect) = dimmed_value.
+%:- func area(rect::in(rect)) = (dimmed_value::out(dimmed_value)) is det.
+
+area(rect(A, B)) = A * B.
+
 main(!IO) :-
+    print_test("Area rect(2m, 3m)", area(rect(2.0*m, 3.0*m)), !IO),
     print_test("Velocity", m/s, !IO),
     print_test("Acceleration", m/s**2, !IO),
     print_test("Hertz", 1.0/s, !IO),
-    print_test("nano metres", m `exp` -9.0, !IO),
-    print_test("millimetres", 1.0e-3 * m, !IO),
-    print_test("cube metres", m * m * m, !IO),
+    print_test("nano metres", m `exp` -9, !IO),
+    print_test("millimetres", 1.0e-3*m, !IO),
+    print_test("cube metres", m*m*m, !IO),
     print_test("AU", 'AU', !IO),
     print_test("lightyear", ly, !IO).
 
