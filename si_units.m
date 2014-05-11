@@ -33,14 +33,14 @@
 :- type dim
     ---> one
     ;    unit(base_quantity)
-    ;    sum(list(dim))
+    ;    sum(list(scale), list(dim))
     ;    product(list(dim))
     ;    power(dim, exp).
 
 :- inst dim
     ---> one
     ;    unit(ground)
-    ;    sum(list_skel(dim))
+    ;    sum(list_skel(ground), list_skel(dim))
     ;    product(list_skel(dim))
     ;    power(dim, ground).
 
@@ -242,7 +242,18 @@ times(Md, Mr) =
 
 Divident / Divisor = Divident * Divisor ** (-1).
 
-Augend + Addend = 0.0 * one. % dimmed_value(1.0, sum([Augend, Addend])).
+Augend + Addend = Sum :-
+    DimAu = dim(Augend),
+    DimAd = dim(Addend),
+    ScaleAu = scale(Augend),
+    ScaleAd = scale(Addend),
+    ( DimAu = DimAd ->
+        Sum = dimmed_value(ScaleAu + ScaleAd, DimAu)
+    ;
+        Sum = dimmed_value(1.0, sum([ScaleAu, ScaleAd], [DimAu, DimAd]))
+    ;
+        unexpected($file, $pred, "unsupported dimension sum")
+    ).
 
 Minuend - Subtrahend = Minuend + (-1.0 * Subtrahend ).
 
@@ -295,19 +306,27 @@ degree = math.pi / 180.0.
 %------------------------------------------------------------------------------%
 
 dimmed_value_to_doc(dimmed_value(Scale, Dim)) =
-    group([format(Scale), dim_to_doc(Dim)]).
+    ( if Scale = 1.0, Dim \= one then
+        dim_to_doc(Dim)
+      else
+        group([format(Scale), dim_to_doc(Dim)])
+    ).
 
 dim_to_doc(Dim) =
-    ( Dim = unit(Unit) ->
+    ( Dim = one ->
+        str("") % maybe it would be nice to retain "rad", etc ...
+    ; Dim = unit(Unit) ->
         str(si_unit_symbol(Unit))
     ; Dim = power(Base, Exp) ->
         docs([dim_to_doc(Base), exp_to_doc(Exp)])
     ; Dim = product(Product) ->
         format_list(map_to_univ(Product), str("⋅"))
-    ; Dim = sum(Sum) ->
-        format_list(map_to_univ(Sum), str(" + "))
+    ; Dim = sum(Scales, Dims) ->
+        docs([str("("), format_list(
+           map_corresponding(summand_to_univ, Scales, Dims), str(" + ")),
+              str(")")])
     ;
-        str("?dim:unknown?")
+        unexpected($file, $pred, "no pretty printer clause for dim")
     ).
 
 si_unit_symbol(length) = "m".
@@ -330,6 +349,10 @@ exp_to_doc(Exp) = Doc :-
         docs([str("⁽"), str(integer_to_sup_str(Numer)),
               str("⁄"), str(integer_to_sub_str(Denom)),  str("₎")])
     ).
+
+:- func summand_to_univ(scale, dim) = univ.
+
+summand_to_univ(Scale, Dim) = univ(dimmed_value(Scale, Dim)).
 
 :- func map_to_univ(list(T)) = list(univ).
 
