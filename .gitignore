@@ -1,5 +1,6 @@
 Mercury/
 si_units
+test_si_units
 .*.swp
 tags
 *.mh
