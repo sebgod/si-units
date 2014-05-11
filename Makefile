@@ -12,6 +12,6 @@ test: test_si_units
 libsi_units: si_units.m $(SI_UNITS_SUBS)
 	$(MMC) $(MCFLAGS) -m $@ $(MLLIBS)
 
-test_si_units: test_si_units.m
+test_si_units: libsi_units test_si_units.m
 	$(MMC) $(MCFLAGS) -m $@ $(MLLIBS)
 
