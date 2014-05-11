@@ -125,6 +125,8 @@
 
 :- func exp(T, int) = dimmed_value <= dimmed_value(T).
 
+:- func si_unit_symbol(base_quantity) = string.
+
 :- func dimmed_value_to_doc(dimmed_value) = doc.
 
 :- func dim_to_doc(dim) = doc.
@@ -299,23 +301,7 @@ dimmed_value_to_doc(dimmed_value(Scale, Dim)) =
 
 dim_to_doc(Dim) =
     ( Dim = unit(Unit) ->
-        ( Unit = length ->
-            str("m")
-        ; Unit = time ->
-            str("s")
-        ; Unit = mass ->
-            str("kg")
-        ; Unit = temperature ->
-            str("K")
-        ; Unit = amount_of_substance ->
-            str("mol")
-        ; Unit = electric_current ->
-            str("A")
-        ; Unit = luminous_intensity ->
-            str("cd")
-        ;
-            str("?dim:unit(unknown)?")
-        )
+        str(si_unit_symbol(Unit))
     ; Dim = power(Base, Exp) ->
         docs([dim_to_doc(Base), exp_to_doc(Exp)])
     ; Dim = product(Product) ->
@@ -325,6 +311,14 @@ dim_to_doc(Dim) =
     ;
         str("?dim:unknown?")
     ).
+
+si_unit_symbol(length) = "m".
+si_unit_symbol(time) = "s".
+si_unit_symbol(mass) = "kg".
+si_unit_symbol(temperature) = "K".
+si_unit_symbol(amount_of_substance) = "mol".
+si_unit_symbol(electric_current) = "A".
+si_unit_symbol(luminous_intensity) = "cd".
 
 exp_to_doc(Exp) = Doc :-
     Numer = rational.numer(Exp),
