@@ -15,3 +15,17 @@ libsi_units: si_units.m $(SI_UNITS_SUBS)
 test_si_units: libsi_units test_si_units.m
 	$(MMC) $(MCFLAGS) -m $@ $(MLLIBS)
 
+.PHONY: clean
+clean:
+	rm -f *.mh
+	rm -f *.err
+	rm -f *.a
+	rm -f *.so
+	rm -f *.dylib
+	rm -f *.jar
+	rm -f *.beams
+	rm -f test_si_units
+
+.PHONY: realclean
+realclean: clean
+	rm -fR Mercury/
