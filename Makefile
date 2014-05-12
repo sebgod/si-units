@@ -17,6 +17,7 @@ test_si_units: libsi_units test_si_units.m
 
 .PHONY: clean
 clean:
+	rm -f *.init
 	rm -f *.mh
 	rm -f *.err
 	rm -f *.a
