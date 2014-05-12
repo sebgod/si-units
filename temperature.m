@@ -1,21 +1,23 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ff=unix ts=4 sw=4 et
 %----------------------------------------------------------------------------%
-% File: si_units.mass.m
+% File: temperature.m
 % Copyright (C) 2014 Sebastian Godelet
 % Main author: Sebastian Godelet <sebastian.godelet+github@gmail.com>
-% Created on: Mon May 12 16:45:33 CEST 2014
+% Created on: Mon May 12 16:47:00 CEST 2014
 %
 %----------------------------------------------------------------------------%
 
-:- module si_units.mass.
+:- module si_units.temperature.
 
 :- interface.
 
 :- import_module si_units.dim.
 
-:- func kilogram `with_type` si_const `with_inst` si_const.
-:- func kg       `with_type` si_const `with_inst` si_const.
+%----------------------------------------------------------------------------%
+
+:- func kelvin `with_type` si_const `with_inst` si_const.
+:- func 'K'    `with_type` si_const `with_inst` si_const.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -24,10 +26,10 @@
 
 %----------------------------------------------------------------------------%
 
-kilogram = unit(mass).
-kg = kilogram.
+kelvin = unit(temperature).
+'K' = kelvin.
 
 %----------------------------------------------------------------------------%
-:- end_module si_units.mass.
+:- end_module si_units.temperature.
 % -*- Mode: Mercury; column: 80; indent-tabs-mode: nil; tabs-width: 4 -*-
 %----------------------------------------------------------------------------%
