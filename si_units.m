@@ -29,6 +29,7 @@
 :- instance dimmed_value(list(T)) <= dimmed_value(T).
 :- instance dimmed_value(dimmed_value(T)) <= dimmed_value(T).
 :- instance dimmed_value(scale).
+:- instance dimmed_value(metre).
 
 :- type dim
     ---> one
@@ -60,7 +61,7 @@
 :- inst dimmed_value
     ---> dimmed_value(unique, dim).
 
-:- inst metre ---> dimmed_value(ground, bound(length)).
+:- type metre ---> metre(scale).
 
 %------------------------------------------------------------------------------%
 
@@ -70,8 +71,8 @@
 %:- type si_derived == ((func) = dimmed_value).
 %:- inst si_derived == ((func) = (out(dimmed_value)) is det).
 
-:- func metre `with_type` si_const `with_inst` si_const.
-:- func m     `with_type` si_const `with_inst` si_const.
+:- func metre = metre.
+:- func m     = metre.
 
 % `with_type` si_derived `with_inst` si_derived..
 :- func astronomical_unit = dimmed_value.
@@ -169,6 +170,11 @@
     (scale(Scale) = Scale)
 ].
 
+:- instance dimmed_value(metre) where [
+    (dim(_) = unit(length)),
+    (scale(metre(Scale)) = Scale)
+].
+
 %------------------------------------------------------------------------------%
 
 Base ** Exp = dimmed_value(scale(Dim), Dim) :-
@@ -262,7 +268,7 @@ exp(Value, Exp) = dimmed_value(Scale, dim(Value)) :-
 
 %------------------------------------------------------------------------------%
 
-metre = unit(length).
+metre = metre(1.0).
 m = metre.
 
 astronomical_unit = 149597870700.0 * m.
