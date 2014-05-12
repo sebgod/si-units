@@ -109,8 +109,9 @@ integer_to_sup_str(Integer) = integer_filter_map_str(digit_to_sup, Integer).
 
 integer_to_sub_str(Integer) = integer_filter_map_str(digit_to_sub, Integer).
 
+:- inst filter_func == (func(in) = out is semidet).
 :- func integer_filter_map_str((func(char) = char), integer.integer) = string.
-:- mode integer_filter_map_str(in((func(in) = out) is semidet), in) = out is det.
+:- mode integer_filter_map_str(in(filter_func), in) = out is det.
 
 integer_filter_map_str(Filter, Integer) =
     from_char_list(filter_map(Filter,
