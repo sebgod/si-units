@@ -34,12 +34,25 @@
 
 :- type dimmed_value == dimmed_value(dim).
 
-:- inst dimmed_value
-    ---> dimmed_value(unique, dim, ground).
-
 :- type symbol == string.
 
 %----------------------------------------------------------------------------%
+%
+% Insts for better dimension safety
+%
+
+:- inst powered_val(I) --->
+    dimmed_value(
+        ground,
+        bound(power(I, ground)),
+        ground
+    ).
+
+:- mode power_result(I) == out(powered_val(I)).
+
+
+%----------------------------------------------------------------------------%
+%
 % Binary operators for a dimmed_value
 %
 
@@ -73,6 +86,7 @@
 :- use_module rational.
 
 %----------------------------------------------------------------------------%
+%
 % Type class instances
 %
 
