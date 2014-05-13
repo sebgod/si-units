@@ -55,6 +55,7 @@
 :- func si_unit_symbol(base_quantity) = string.
 
 :- func dimmed_value_to_doc(dimmed_value) = doc.
+:- func (any_dimmed_value_to_doc(T) = doc) <= dimmed_value(T).
 
 :- func dim_to_doc(dim) = doc.
 
@@ -77,7 +78,14 @@
 
 %----------------------------------------------------------------------------%
 
-dimmed_value_to_doc(dimmed_value(Scale, Dim)) =
+dimmed_value_to_doc(DimmedValue) =
+    any_dimmed_value_to_doc(DimmedValue).
+
+any_dimmed_value_to_doc(DimmedValue) = Doc :-
+    Scale = scale(DimmedValue),
+    Dim   = dim(DimmedValue),
+% dimmed_value(Scale, Dim)) =
+    Doc =
     ( if Scale = 1.0, Dim \= one then
         dim_to_doc(Dim)
       else

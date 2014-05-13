@@ -17,45 +17,77 @@
 
 %----------------------------------------------------------------------------%
 
-:- type metre ---> metre(scale).
+:- type metre ---> m(scale).
 
 :- instance dimmed_value(metre).
 
 :- func metre = metre.
 :- func m     = metre.
 
-:- func astronomical_unit = dimmed_value.
-:- func 'AU'      = dimmed_value.
+:- func astronomical_unit = metre.
+:- func 'AU'      = metre.
 
-:- func lightyear = dimmed_value.
-:- func ly        = dimmed_value.
+:- func lightyear = metre.
+:- func ly        = metre.
 
-:- func parsec = dimmed_value.
-:- func pc     = dimmed_value.
+:- func parsec = metre.
+:- func pc     = metre.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
 
+:- import_module io.
+:- import_module list.
+:- import_module pretty_printer.
+:- import_module si_units.print.
+:- import_module univ.
+
+%----------------------------------------------------------------------------%
+
 :- instance dimmed_value(metre) where [
-    (dim(_) = unit(length)),
-    (scale(metre(Scale)) = Scale)
+    (dim(_)= unit(length)),
+    (scale(m(Scale)) = Scale)
 ].
 
 %----------------------------------------------------------------------------%
 
-metre = metre(1.0).
+metre = m(1.0).
 m = metre.
 
-astronomical_unit = 149597870700.0 * m.
+astronomical_unit = m(149597870700.0).
 'AU' = astronomical_unit.
 
-lightyear = 9.4605284e15 * m.
+lightyear = m(9.4605284e15).
 ly = lightyear.
 
-parsec = 3.0857e16 * m.
+parsec = m(3.0857e16).
 pc = parsec.
+
+%----------------------------------------------------------------------------%
+% Initialise formatter for metre
+%
+
+:- initialise init/2.
+
+:- pred init(io::di, io::uo) is det.
+
+init(!IO) :-
+    update_formatters([fmt($module, "metre", 0, fmt_metre)], !IO).
+
+:- func fmt_metre `with_type` formatter `with_inst` formatter_func.
+
+fmt_metre(Univ, _Args) =
+    ( Univ = univ(X) ->
+        metre_to_doc(X)
+    ;
+        str("?metre?")
+    ).
+
+:- func metre_to_doc(metre) = doc.
+
+metre_to_doc(Metre) = any_dimmed_value_to_doc(Metre).
 
 %----------------------------------------------------------------------------%
 :- end_module si_units.length.
