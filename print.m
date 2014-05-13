@@ -13,11 +13,44 @@
 
 :- interface.
 
+:- import_module io.
+:- import_module list.
+:- import_module pretty_printer.
 :- import_module si_units.dim.
 :- import_module si_units.dimmed_value.
-:- import_module pretty_printer.
 
 %----------------------------------------------------------------------------%
+% Helper types for adding formatting descriptors
+%
+
+    % update_formatters/3 will use the get_default_formatter_map,
+    % add the fmts list to the formatter_map sequentially,
+    % and call set_default_formatter_map with the new map.
+:- pred update_formatters(fmts::in(fmts), io::di, io::uo) is det.
+
+:- type fmts == list(fmt).
+
+:- inst fmts == list_skel(fmt).
+
+:- type fmt
+    ---> fmt(
+            fmt_module    :: string,
+            fmt_name      :: string,
+            fmt_arity     :: int,
+            fmt_formatter :: formatter
+    ).
+
+:- inst fmt
+    ---> fmt(ground, ground, ground, formatter_func).
+
+:- inst formatter_func == (func(in, in) = out is det).
+
+:- pred set_formatter_sv(fmt::in, formatter_map::in, formatter_map::out)
+    is det.
+
+%----------------------------------------------------------------------------%
+% Formatting functions for dimensions
+%
 
 :- func si_unit_symbol(base_quantity) = string.
 
@@ -36,8 +69,6 @@
 :- import_module deconstruct.
 :- import_module generic_math.
 :- use_module integer.
-:- import_module io.
-:- import_module list.
 :- use_module rational.
 :- import_module require.
 :- import_module string.
@@ -149,32 +180,39 @@ digit_to_sub('+') = '₊'.
 digit_to_sub('-') = '₋'.
 
 %----------------------------------------------------------------------------%
-% Initialisation code for pretty printing
+% Formatter update API
+%
+
+update_formatters(Fmts, !IO) :-
+    get_default_formatter_map(FMap0, !IO),
+    foldl(set_formatter_sv, Fmts, FMap0, FMap),
+    set_default_formatter_map(FMap, !IO).
+
+set_formatter_sv(Fmt, !FMap) :-
+    !:FMap = set_formatter(Fmt^fmt_module, Fmt^fmt_name,
+                         Fmt^fmt_arity, Fmt^fmt_formatter, !.FMap).
+
 %----------------------------------------------------------------------------%
+% Initialisation code for pretty printing
+%
 
 :- initialise init/2.
 
 :- pred init(io::di, io::uo) is det.
 
 init(!IO) :-
-    get_default_formatter_map(Fmt0, !IO),
-    si_units.print.unit_formatter(Fmt0, Fmt),
-    set_default_formatter_map(Fmt, !IO).
+    update_formatters(
+        [
+            fmt("si_units.dim", "dim", 0, fmt_dim),
+            fmt("si_units.dimmed_value", "dimmed_value", 1, fmt_dimmed_value)
+        ], !IO).
 
-:- pred unit_formatter(formatter_map::in, formatter_map::out) is det.
-
-
-unit_formatter(!Fmt) :-
-    set_formatter_sv("si_units.dim", "dim", 0, fmt_dim, !Fmt),
-    set_formatter_sv("si_units.dimmed_value", "dimmed_value", 1,
-        fmt_dimmed_value, !Fmt).
-
-:- func fmt_dim(univ, list(type_desc)) = doc.
+:- func fmt_dim `with_type` formatter `with_inst` formatter_func.
 
 fmt_dim(Univ, _Args) =
     ( if Univ = univ(X) then dim_to_doc(X) else  str("?dim?") ).
 
-:- func fmt_dimmed_value(univ, list(type_desc)) = doc.
+:- func fmt_dimmed_value `with_type` formatter `with_inst` formatter_func.
 
 fmt_dimmed_value(Univ, _Args) =
     ( Univ = univ(X) ->
@@ -182,12 +220,6 @@ fmt_dimmed_value(Univ, _Args) =
     ;
         str("?dimmed_value?")
     ).
-
-:- pred set_formatter_sv(string::in, string::in, int::in, formatter::in,
-    formatter_map::in, formatter_map::out) is det.
-
-set_formatter_sv(ModuleName, TypeName, Arity, Formatter, FMap0, FMap) :-
-    FMap = set_formatter(ModuleName, TypeName, Arity, Formatter, FMap0).
 
 %----------------------------------------------------------------------------%
 :- end_module si_units.print.
