@@ -48,7 +48,7 @@
 %----------------------------------------------------------------------------%
 
 :- instance dimmed_value(metre) where [
-    (dim(_)= unit(length)),
+    (dim(_) = unit(length)),
     (scale(m(Scale)) = Scale),
     (symbol(_) = no)
 ].
