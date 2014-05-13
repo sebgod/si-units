@@ -7,7 +7,7 @@
 % Created on: Mon May 12 16:03:06 CEST 2014
 %
 % Pretty print routines to nicely format all SI Units and derived units
-%----------------------------------------------------------------------------%
+%
 
 :- module si_units.print.
 
@@ -20,6 +20,7 @@
 :- import_module si_units.dimmed_value.
 
 %----------------------------------------------------------------------------%
+%
 % Helper types for adding formatting descriptors
 %
 
@@ -34,11 +35,11 @@
 
 :- type fmt
     ---> fmt(
-            fmt_module    :: string,
-            fmt_name      :: string,
-            fmt_arity     :: int,
-            fmt_formatter :: formatter
-    ).
+            fmt_module    :: string,    % FQN Module name
+            fmt_name      :: string,    % Type name
+            fmt_arity     :: int,       % Type arity
+            fmt_formatter :: formatter  % pretty_printer function
+         ).
 
 :- inst fmt
     ---> fmt(ground, ground, ground, formatter_func).
@@ -49,6 +50,7 @@
     is det.
 
 %----------------------------------------------------------------------------%
+%
 % Formatting functions for dimensions
 %
 
@@ -88,7 +90,7 @@ any_dimmed_value_to_doc(DimmedValue) = group(FmtDim) :-
     CustomSymbol = symbol(DimmedValue),
     FmtDim =
     ( Scale = 1.0, Dim \= one ->
-        [dim_to_doc(Dim)]
+        [( if CustomSymbol = yes(S) then str(S) else dim_to_doc(Dim) )]
     ;
         [format(Scale),
          ( CustomSymbol = yes(S) ->
