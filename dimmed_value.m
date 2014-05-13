@@ -13,6 +13,7 @@
 :- interface.
 
 :- import_module list.
+:- import_module maybe.
 :- import_module generic_math.
 :- import_module si_units.dim.
 
@@ -20,7 +21,8 @@
 
 :- typeclass dimmed_value(T) where [
     func dim(T) = dim,
-    func scale(T) = scale
+    func scale(T) = scale,
+    func symbol(T) = maybe(string)
 ].
 
 :- instance dimmed_value(dim).
@@ -28,12 +30,14 @@
 :- instance dimmed_value(dimmed_value(T)) <= dimmed_value(T).
 :- instance dimmed_value(scale).
 
-:- type dimmed_value(T) ---> dimmed_value(scale, T).
+:- type dimmed_value(T) ---> dimmed_value(scale, T, maybe(symbol)).
 
 :- type dimmed_value == dimmed_value(dim).
 
 :- inst dimmed_value
-    ---> dimmed_value(unique, dim).
+    ---> dimmed_value(unique, dim, ground).
+
+:- type symbol == string.
 
 %----------------------------------------------------------------------------%
 % Binary operators for a dimmed_value
@@ -73,28 +77,32 @@
 %
 
 :- instance dimmed_value(dimmed_value(T)) <= dimmed_value(T) where [
-    (dim(dimmed_value(_Scale, Dim)) = dim(Dim)),
-    (scale(dimmed_value(Scale, _Dim)) = Scale)
+    (dim(dimmed_value(_Scale, Dim, _Sym)) = dim(Dim)),
+    (scale(dimmed_value(Scale, _Dim, _Sym)) = Scale),
+    (symbol(dimmed_value(_Scale, _Dim, Sym)) = Sym)
 ].
 
 :- instance dimmed_value(dim) where [
     (dim(Dim) = Dim),
-    (scale(_) = 1.0)
+    (scale(_) = 1.0),
+    (symbol(_) = no)
 ].
 
 :- instance dimmed_value(list(T)) <= dimmed_value(T) where [
     (dim(List) = product(map(dim, List))),
-    (scale(_)  = 1.0)
+    (scale(_)  = 1.0),
+    (symbol(_) = no)
 ].
 
 :- instance dimmed_value(scale) where [
     (dim(_) = one),
-    (scale(Scale) = Scale)
+    (scale(Scale) = Scale),
+    (symbol(_) = no)
 ].
 
 %----------------------------------------------------------------------------%
 
-Base ** Exp = dimmed_value(scale(Dim), Dim) :-
+Base ** Exp = dimmed_value(scale(Dim), Dim, symbol(Base)) :-
     Dim0 = dim(Base),
     Exp1 = to_rational(Exp),
     Dim =
@@ -108,7 +116,7 @@ Base ** Exp = dimmed_value(scale(Dim), Dim) :-
 
 %----------------------------------------------------------------------------%
 
-Multiplicand * Multiplier = dimmed_value(Scale, Dim) :-
+Multiplicand * Multiplier = dimmed_value(Scale, Dim, no) :-
     Scale = scale(Multiplicand) * scale(Multiplier),
     Dim   = times(dim(Multiplicand), dim(Multiplier)).
 
@@ -176,14 +184,14 @@ Augend + Addend = Sum :-
     ScaleAu = scale(Augend),
     ScaleAd = scale(Addend),
     ( DimAu = DimAd ->
-        Sum = dimmed_value(ScaleAu + ScaleAd, DimAu)
+        Sum = dimmed_value(ScaleAu + ScaleAd, DimAu, symbol(Augend))
     ;
-        Sum = dimmed_value(1.0, sum([ScaleAu, ScaleAd], [DimAu, DimAd]))
+        Sum = dimmed_value(1.0, sum([ScaleAu, ScaleAd], [DimAu, DimAd]), no)
     ).
 
 Minuend - Subtrahend = Minuend + (-1.0 * Subtrahend ).
 
-exp(Value, Exp) = dimmed_value(Scale, dim(Value)) :-
+exp(Value, Exp) = dimmed_value(Scale, dim(Value), symbol(Value)) :-
     Scale = scale(Value) * 10.0 ** to_float(Exp).
 
 %----------------------------------------------------------------------------%

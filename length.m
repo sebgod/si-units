@@ -40,6 +40,7 @@
 
 :- import_module io.
 :- import_module list.
+:- import_module maybe.
 :- import_module pretty_printer.
 :- import_module si_units.print.
 :- import_module univ.
@@ -48,7 +49,8 @@
 
 :- instance dimmed_value(metre) where [
     (dim(_)= unit(length)),
-    (scale(m(Scale)) = Scale)
+    (scale(m(Scale)) = Scale),
+    (symbol(_) = no)
 ].
 
 %----------------------------------------------------------------------------%

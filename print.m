@@ -70,6 +70,7 @@
 :- import_module deconstruct.
 :- import_module generic_math.
 :- use_module integer.
+:- import_module maybe.
 :- use_module rational.
 :- import_module require.
 :- import_module string.
@@ -81,22 +82,28 @@
 dimmed_value_to_doc(DimmedValue) =
     any_dimmed_value_to_doc(DimmedValue).
 
-any_dimmed_value_to_doc(DimmedValue) = Doc :-
+any_dimmed_value_to_doc(DimmedValue) = group(FmtDim) :-
     Scale = scale(DimmedValue),
     Dim   = dim(DimmedValue),
-% dimmed_value(Scale, Dim)) =
-    Doc =
-    ( if Scale = 1.0, Dim \= one then
-        dim_to_doc(Dim)
-      else
-        group([format(Scale),
-               str(if Dim \= one then " " else ""),
-               dim_to_doc(Dim)])
+    CustomSymbol = symbol(DimmedValue),
+    FmtDim =
+    ( Scale = 1.0, Dim \= one ->
+        [dim_to_doc(Dim)]
+    ;
+        [format(Scale),
+         ( CustomSymbol = yes(S) ->
+             str(" " ++ S)
+         ; Dim = one ->
+             str("")
+         ;
+             dim_to_doc(Dim)
+         )
+        ]
     ).
 
 dim_to_doc(Dim) =
     ( Dim = one ->
-        str("") % maybe it would be nice to retain "rad", etc ...
+        str("")
     ; Dim = unit(Unit) ->
         str(si_unit_symbol(Unit))
     ; Dim = power(Base, Exp) ->
@@ -134,7 +141,7 @@ exp_to_doc(Exp) = Doc :-
 
 :- func summand_to_univ(scale, dim) = univ.
 
-summand_to_univ(Scale, Dim) = univ(dimmed_value(Scale, Dim)).
+summand_to_univ(Scale, Dim) = univ(dimmed_value(Scale, Dim, no)).
 
 :- func map_to_univ(list(T)) = list(univ).
 
