@@ -13,28 +13,39 @@
 :- interface.
 
 :- import_module si_units.dim.
+:- import_module si_units.dimmed_value.
 
 %----------------------------------------------------------------------------%
 
-:- func rad   `with_type` si_const `with_inst` si_const.
-:- func turn   = dimmed_value.
-:- func degree = dimmed_value.
-:- func '°'    = dimmed_value.
-:- func pi_rad = dimmed_value.
+:- type rad ---> rad(scale).
+
+:- instance dimmed_value(rad).
+
+:- func rad    = rad.
+:- func turn   = rad.
+:- func degree = rad.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
 
+:- import_module generic_math.
+:- use_module math.
+:- import_module maybe.
+
 %----------------------------------------------------------------------------%
 
-pi_rad = math.pi * rad.
+:- instance dimmed_value(rad) where [
+    (dim(_) = one),
+    (scale(rad(Scale)) = Scale),
+    (symbol(_) = yes("rad"))
+].
+%----------------------------------------------------------------------------%
 
-rad = one.
-turn = 2.0 * pi_rad.
-degree = math.pi / 180.0.
-'°' = degree.
+rad    = rad(1.0).
+turn   = rad(2.0 * math.pi).
+degree = rad(math.pi / 180.0).
 
 %----------------------------------------------------------------------------%
 :- end_module si_units.radians.

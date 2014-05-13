@@ -12,16 +12,17 @@
 
 :- interface.
 
+:- include_module si_units.amount_of_substance.
 :- include_module si_units.dim.
 :- include_module si_units.dimmed_value.
-:- include_module si_units.length.
-:- include_module si_units.time.
-:- include_module si_units.mass.
-:- include_module si_units.temperature.
 :- include_module si_units.electric_current.
-:- include_module si_units.amount_of_substance.
+:- include_module si_units.length.
 :- include_module si_units.luminous_intensity.
+:- include_module si_units.mass.
 :- include_module si_units.print.
+:- include_module si_units.radians.
+:- include_module si_units.temperature.
+:- include_module si_units.time.
 
 %----------------------------------------------------------------------------%
 :- end_module si_units.
