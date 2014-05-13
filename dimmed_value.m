@@ -130,9 +130,17 @@ Base ** Exp = dimmed_value(scale(Dim), Dim, symbol(Base)) :-
 
 %----------------------------------------------------------------------------%
 
-Multiplicand * Multiplier = dimmed_value(Scale, Dim, no) :-
+Multiplicand * Multiplier = dimmed_value(Scale, Dim, Sym) :-
     Scale = scale(Multiplicand) * scale(Multiplier),
-    Dim   = times(dim(Multiplicand), dim(Multiplier)).
+    Dim   = times(dim(Multiplicand), dim(Multiplier)),
+    SymMd = symbol(Multiplicand),
+    SymMr = symbol(Multiplier),
+    Sym   =
+    (  Dim = one ->
+        ( SymMd = no -> SymMr ; SymMd )
+    ;
+        no
+    ).
 
 
 :- func times(dim, dim) = dim.
@@ -208,7 +216,6 @@ Minuend - Subtrahend = Minuend + (-1.0 * Subtrahend ).
 exp(Value, Exp) = dimmed_value(Scale, dim(Value), symbol(Value)) :-
     Scale = scale(Value) * 10.0 ** to_float(Exp).
 
-%----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 :- end_module si_units.dimmed_value.
 % -*- Mode: Mercury; column: 80; indent-tabs-mode: nil; tabs-width: 4 -*-
