@@ -23,16 +23,24 @@
 
 %----------------------------------------------------------------------------%
 
+:- import_module math.
+:- import_module pretty_printer.
+:- use_module rational.
 :- import_module si_units.
+:- import_module si_units.dim.
 :- import_module si_units.dimmed_value.
 :- import_module si_units.length.
-:- import_module si_units.time.
+:- import_module si_units.radians.
 :- import_module si_units.temperature.
-:- import_module pretty_printer.
+:- import_module si_units.time.
+
+%----------------------------------------------------------------------------%
 
 :- type rect ---> rect(metre, metre).
 
-:- func area(rect) = dimmed_value.
+:- inst length   ---> unit(length).
+
+:- func area(rect::in) = (dimmed_value::power_result(length)) is det.
 
 area(rect(A, B)) = A * B.
 
@@ -49,7 +57,9 @@ main(!IO) :-
     print_test("millimetres", 1.0e-3*m, !IO),
     print_test("cube metres", m*m*m, !IO),
     print_test("AU", 'AU', !IO),
-    print_test("lightyear", ly, !IO).
+    print_test("lightyear", ly, !IO),
+    print_test("sin(π)", math.sin(math.pi) * rad, !IO),
+    print_test("tan(π)", rad(math.tan(math.pi)), !IO).
 
 :- pred print_test(string::in, T::in, io::di, io::uo) is det
             <= dimmed_value(T).
