@@ -30,9 +30,14 @@
 
 :- implementation.
 
+:- import_module io.
+:- import_module list.
 :- import_module generic_math.
 :- use_module math.
 :- import_module maybe.
+:- import_module pretty_printer.
+:- import_module si_units.print.
+:- import_module univ.
 
 %----------------------------------------------------------------------------%
 
@@ -46,6 +51,31 @@
 rad    = rad(1.0).
 turn   = rad(2.0 * math.pi).
 degree = rad(math.pi / 180.0).
+
+%----------------------------------------------------------------------------%
+%
+% Initialise formatter for radians
+%
+
+:- initialise init/2.
+
+:- pred init(io::di, io::uo) is det.
+
+init(!IO) :-
+    update_formatters([fmt($module, "rad", 0, fmt_radians)], !IO).
+
+:- func fmt_radians `with_type` formatter `with_inst` formatter_func.
+
+fmt_radians(Univ, _Args) =
+    ( Univ = univ(X) ->
+        radians_to_doc(X)
+    ;
+        str("?radians?")
+    ).
+
+:- func radians_to_doc(rad) = doc.
+
+radians_to_doc(Radians) = any_dimmed_value_to_doc(Radians).
 
 %----------------------------------------------------------------------------%
 :- end_module si_units.radians.
