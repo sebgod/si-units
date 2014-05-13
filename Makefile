@@ -2,7 +2,7 @@ MMC=mmc
 MCFLAGS=--use-grade-subdirs
 MLLIBS=--ml generic_math
 
-SI_UNIT_SUBS := $(wildcard si_units.*.m)
+SI_UNIT_SUBS := $(wildcard *.m)
 
 .PHONY: test
 test: test_si_units
