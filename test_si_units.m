@@ -33,6 +33,7 @@
 :- import_module si_units.dimmed_value.
 :- import_module si_units.length.
 :- import_module si_units.radians.
+:- import_module si_units.scalar.
 :- import_module si_units.temperature.
 :- import_module si_units.time.
 

@@ -12,14 +12,16 @@
 
 :- interface.
 
-:- import_module si_units.dim.
 :- import_module si_units.dimmed_value.
+:- import_module si_units.scalar.
 
 %----------------------------------------------------------------------------%
 
-:- type rad ---> rad(scale).
+:- type rad(T) ---> rad(T).
 
-:- instance dimmed_value(rad).
+:- type rad == rad(float).
+
+:- instance dimmed_value(rad(T)) <= scalar(T).
 
 :- func rad    = rad.
 :- func turn   = rad.
@@ -36,14 +38,15 @@
 :- use_module math.
 :- import_module maybe.
 :- import_module pretty_printer.
+:- import_module si_units.dim.
 :- import_module si_units.print.
 :- import_module univ.
 
 %----------------------------------------------------------------------------%
 
-:- instance dimmed_value(rad) where [
+:- instance dimmed_value(rad(T)) <= scalar(T) where [
     (dim(_) = one),
-    (scale(rad(Scale)) = Scale),
+    (scale(rad(Scalar)) = scalar(Scalar)),
     (symbol(_) = yes("rad"))
 ].
 %----------------------------------------------------------------------------%
@@ -62,7 +65,7 @@ degree = rad(math.pi / 180.0).
 :- pred init(io::di, io::uo) is det.
 
 init(!IO) :-
-    update_formatters([fmt($module, "rad", 0, fmt_any(radians_to_doc))], !IO).
+    update_formatters([fmt($module, "rad", 1, fmt_any(radians_to_doc))], !IO).
 
 :- func radians_to_doc(rad) = doc.
 

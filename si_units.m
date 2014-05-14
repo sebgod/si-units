@@ -21,6 +21,7 @@
 :- include_module si_units.mass.
 :- include_module si_units.print.
 :- include_module si_units.radians.
+:- include_module si_units.scalar.
 :- include_module si_units.temperature.
 :- include_module si_units.time.
 

@@ -12,14 +12,16 @@
 
 :- interface.
 
-:- import_module si_units.dim.
+:- import_module si_units.scalar.
 :- import_module si_units.dimmed_value.
 
 %----------------------------------------------------------------------------%
 
-:- type metre ---> m(scale).
+:- type metre(T) ---> m(T).
 
-:- instance dimmed_value(metre).
+:- type metre == metre(float).
+
+:- instance dimmed_value(metre(T)) <= scalar(T).
 
 :- func metre = metre.
 :- func m     = metre.
@@ -42,14 +44,15 @@
 :- import_module list.
 :- import_module maybe.
 :- import_module pretty_printer.
+:- import_module si_units.dim.
 :- import_module si_units.print.
 :- import_module univ.
 
 %----------------------------------------------------------------------------%
 
-:- instance dimmed_value(metre) where [
+:- instance dimmed_value(metre(T)) <= scalar(T) where [
     (dim(_) = unit(length)),
-    (scale(m(Scale)) = Scale),
+    (scale(m(Scale)) = scalar(Scale)),
     (symbol(_) = no)
 ].
 
@@ -77,7 +80,7 @@ pc = parsec.
 :- pred init(io::di, io::uo) is det.
 
 init(!IO) :-
-    update_formatters([fmt($module, "metre", 0, fmt_any(metre_to_doc))], !IO).
+    update_formatters([fmt($module, "metre", 1, fmt_any(metre_to_doc))], !IO).
 
 :- func metre_to_doc(metre) = doc.
 

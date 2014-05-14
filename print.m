@@ -18,6 +18,7 @@
 :- import_module pretty_printer.
 :- import_module si_units.dim.
 :- import_module si_units.dimmed_value.
+:- import_module si_units.scalar.
 
 %----------------------------------------------------------------------------%
 %
@@ -61,6 +62,8 @@
 :- func dimmed_value_to_doc(dimmed_value) = doc.
 :- func (any_dimmed_value_to_doc(T) = doc) <= dimmed_value(T).
 
+:- func scalar_to_doc(scalar) = doc.
+
 :- func dim_to_doc(dim) = doc.
 
 :- func exp_to_doc(exp) = doc.
@@ -77,6 +80,7 @@
 :- import_module char.
 :- import_module deconstruct.
 :- import_module generic_math.
+:- use_module int.
 :- use_module integer.
 :- import_module maybe.
 :- use_module rational.
@@ -95,10 +99,10 @@ any_dimmed_value_to_doc(DimmedValue) = group(FmtDim) :-
     Dim   = dim(DimmedValue),
     CustomSymbol = symbol(DimmedValue),
     FmtDim =
-    ( Scale = 1.0, Dim \= one ->
+    ( Scale = one, Dim \= one ->
         [( if CustomSymbol = yes(S) then str(S) else dim_to_doc(Dim) )]
     ;
-        [format(Scale)] ++
+        [scalar_to_doc(Scale)] ++
         ( CustomSymbol = yes(S) ->
             [space, str(S)]
         ; Dim = one ->
@@ -107,6 +111,9 @@ any_dimmed_value_to_doc(DimmedValue) = group(FmtDim) :-
             [space, dim_to_doc(Dim)]
         )
     ).
+
+scalar_to_doc(scalar(V, P)) =
+    str(string.format("%0." ++ from_int(P) ++ "e", [f(V)])).
 
 dim_to_doc(Dim) =
     ( Dim = one ->
@@ -144,7 +151,7 @@ exp_to_doc(Exp) = Doc :-
               str("⁄"), str(integer_to_sub_str(Denom)),  str("₎")])
     ).
 
-:- func summand_to_univ(scale, dim) = univ.
+:- func summand_to_univ(scalar, dim) = univ.
 
 summand_to_univ(Scale, Dim) = univ(dimmed_value(Scale, Dim, no)).
 
@@ -234,6 +241,7 @@ fmt_any(Fun, Univ, _Args) =
 init(!IO) :-
     update_formatters(
         [
+            fmt("si_units.scalar", "scalar", 0, fmt_any(scalar_to_doc)),
             fmt("si_units.dim", "dim", 0, fmt_any(dim_to_doc)),
             fmt("si_units.dimmed_value", "dimmed_value", 1,
                 fmt_any(dimmed_value_to_doc))

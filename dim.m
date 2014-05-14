@@ -14,16 +14,16 @@
 
 :- import_module list.
 :- use_module rational.
+:- import_module si_units.scalar.
 
 %----------------------------------------------------------------------------%
 
-:- type scale == float.  % TODO somehow use generic math type
 :- type exp == rational.rational.
 
 :- type dim
     ---> one
     ;    unit(base_quantity)
-    ;    sum(list(scale), list(dim))
+    ;    sum(list(scalar), list(dim))
     ;    product(list(dim))
     ;    power(dim, exp).
 

@@ -16,21 +16,23 @@
 :- import_module maybe.
 :- import_module generic_math.
 :- import_module si_units.dim.
+:- import_module si_units.scalar.
 
 %----------------------------------------------------------------------------%
 
 :- typeclass dimmed_value(T) where [
     func dim(T) = dim,
-    func scale(T) = scale,
+    func scale(T) = scalar,
     func symbol(T) = maybe(string)
 ].
 
 :- instance dimmed_value(dim).
 :- instance dimmed_value(list(T)) <= dimmed_value(T).
 :- instance dimmed_value(dimmed_value(T)) <= dimmed_value(T).
-:- instance dimmed_value(scale).
+:- instance dimmed_value(scalar).
+:- instance dimmed_value(float).
 
-:- type dimmed_value(T) ---> dimmed_value(scale, T, maybe(symbol)).
+:- type dimmed_value(T) ---> dimmed_value(scalar, T, maybe(symbol)).
 
 :- type dimmed_value == dimmed_value(dim).
 
@@ -98,19 +100,25 @@
 
 :- instance dimmed_value(dim) where [
     (dim(Dim) = Dim),
-    (scale(_) = 1.0),
+    (scale(_) = scalar.one),
     (symbol(_) = no)
 ].
 
 :- instance dimmed_value(list(T)) <= dimmed_value(T) where [
     (dim(List) = product(map(dim, List))),
-    (scale(_)  = 1.0),
+    (scale(_)  = scalar.one),
     (symbol(_) = no)
 ].
 
-:- instance dimmed_value(scale) where [
+:- instance dimmed_value(scalar) where [
     (dim(_) = one),
     (scale(Scale) = Scale),
+    (symbol(_) = no)
+].
+
+:- instance dimmed_value(float) where [
+    (dim(_) = one),
+    (scale(Float) = scalar(Float, max_resolution)),
     (symbol(_) = no)
 ].
 
@@ -208,13 +216,15 @@ Augend + Addend = Sum :-
     ( DimAu = DimAd ->
         Sum = dimmed_value(ScaleAu + ScaleAd, DimAu, symbol(Augend))
     ;
-        Sum = dimmed_value(1.0, sum([ScaleAu, ScaleAd], [DimAu, DimAd]), no)
+        Sum = dimmed_value(scalar.one,
+            sum([ScaleAu, ScaleAd], [DimAu, DimAd]), no)
     ).
 
-Minuend - Subtrahend = Minuend + (-1.0 * Subtrahend ).
+Minuend - Subtrahend = Minuend + (scalar(-1.0, max_resolution) * Subtrahend ).
 
-exp(Value, Exp) = dimmed_value(Scale, dim(Value), symbol(Value)) :-
-    Scale = scale(Value) * 10.0 ** to_float(Exp).
+exp(Value, Exp) = dimmed_value(Power, dim(Value), symbol(Value)) :-
+    scalar(V, R) = scale(Value),
+    Power = scalar(V * 10.0 ** to_float(Exp), R).
 
 %----------------------------------------------------------------------------%
 :- end_module si_units.dimmed_value.
