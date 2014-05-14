@@ -23,7 +23,9 @@
 
 %----------------------------------------------------------------------------%
 
-:- import_module math.
+:- import_module generic_math.
+:- import_module list.
+:- use_module math.
 :- import_module pretty_printer.
 :- use_module rational.
 :- import_module si_units.
@@ -58,8 +60,8 @@ main(!IO) :-
     print_test("cube metres", m*m*m, !IO),
     print_test("AU", 'AU', !IO),
     print_test("lightyear", ly, !IO),
-    print_test("sin(π)", math.sin(math.pi) * rad, !IO),
-    print_test("tan(π)", rad(math.tan(math.pi)), !IO).
+    print_test("sin(π/3.0)", math.sin(math.pi/3.0) * rad, !IO),
+    print_test("tan(0.3 * π)", rad(math.tan(0.3 * math.pi)), !IO).
 
 :- pred print_test(string::in, T::in, io::di, io::uo) is det
             <= dimmed_value(T).

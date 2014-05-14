@@ -63,6 +63,10 @@
 
 :- func exp_to_doc(exp) = doc.
 
+:- func empty_str = doc.
+
+:- func space = doc.
+
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
@@ -92,15 +96,14 @@ any_dimmed_value_to_doc(DimmedValue) = group(FmtDim) :-
     ( Scale = 1.0, Dim \= one ->
         [( if CustomSymbol = yes(S) then str(S) else dim_to_doc(Dim) )]
     ;
-        [format(Scale),
-         ( CustomSymbol = yes(S) ->
-             str(" " ++ S)
-         ; Dim = one ->
-             str("")
-         ;
-             dim_to_doc(Dim)
-         )
-        ]
+        [format(Scale)] ++
+        ( CustomSymbol = yes(S) ->
+            [space, str(S)]
+        ; Dim = one ->
+            [empty_str]
+        ;
+            [space, dim_to_doc(Dim)]
+        )
     ).
 
 dim_to_doc(Dim) =
@@ -195,6 +198,10 @@ digit_to_sub('8') = '₈'.
 digit_to_sub('9') = '₉'.
 digit_to_sub('+') = '₊'.
 digit_to_sub('-') = '₋'.
+
+empty_str = str("").
+
+space = str(" ").
 
 %----------------------------------------------------------------------------%
 % Formatter update API
