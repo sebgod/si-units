@@ -77,16 +77,7 @@ pc = parsec.
 :- pred init(io::di, io::uo) is det.
 
 init(!IO) :-
-    update_formatters([fmt($module, "metre", 0, fmt_metre)], !IO).
-
-:- func fmt_metre `with_type` formatter `with_inst` formatter_func.
-
-fmt_metre(Univ, _Args) =
-    ( Univ = univ(X) ->
-        metre_to_doc(X)
-    ;
-        str("?metre?")
-    ).
+    update_formatters([fmt($module, "metre", 0, fmt_any(metre_to_doc))], !IO).
 
 :- func metre_to_doc(metre) = doc.
 

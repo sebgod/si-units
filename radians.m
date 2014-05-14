@@ -62,16 +62,7 @@ degree = rad(math.pi / 180.0).
 :- pred init(io::di, io::uo) is det.
 
 init(!IO) :-
-    update_formatters([fmt($module, "rad", 0, fmt_radians)], !IO).
-
-:- func fmt_radians `with_type` formatter `with_inst` formatter_func.
-
-fmt_radians(Univ, _Args) =
-    ( Univ = univ(X) ->
-        radians_to_doc(X)
-    ;
-        str("?radians?")
-    ).
+    update_formatters([fmt($module, "rad", 0, fmt_any(radians_to_doc))], !IO).
 
 :- func radians_to_doc(rad) = doc.
 

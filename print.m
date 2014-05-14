@@ -46,6 +46,8 @@
 
 :- inst formatter_func == (func(in, in) = out is det).
 
+:- func fmt_any((func(T) = doc)) `with_type` formatter.
+
 :- pred set_formatter_sv(fmt::in, formatter_map::in, formatter_map::out)
     is det.
 
@@ -214,6 +216,13 @@ set_formatter_sv(Fmt, !FMap) :-
     !:FMap = set_formatter(Fmt^fmt_module, Fmt^fmt_name,
                          Fmt^fmt_arity, Fmt^fmt_formatter, !.FMap).
 
+fmt_any(Fun, Univ, _Args) =
+    ( Univ = univ(X) ->
+        Fun(X)
+    ;
+        unexpected($file, $module, "cannot print") % TODO deconstruct Univ
+    ).
+
 %----------------------------------------------------------------------------%
 % Initialisation code for pretty printing
 %
@@ -225,23 +234,10 @@ set_formatter_sv(Fmt, !FMap) :-
 init(!IO) :-
     update_formatters(
         [
-            fmt("si_units.dim", "dim", 0, fmt_dim),
-            fmt("si_units.dimmed_value", "dimmed_value", 1, fmt_dimmed_value)
+            fmt("si_units.dim", "dim", 0, fmt_any(dim_to_doc)),
+            fmt("si_units.dimmed_value", "dimmed_value", 1,
+                fmt_any(dimmed_value_to_doc))
         ], !IO).
-
-:- func fmt_dim `with_type` formatter `with_inst` formatter_func.
-
-fmt_dim(Univ, _Args) =
-    ( if Univ = univ(X) then dim_to_doc(X) else  str("?dim?") ).
-
-:- func fmt_dimmed_value `with_type` formatter `with_inst` formatter_func.
-
-fmt_dimmed_value(Univ, _Args) =
-    ( Univ = univ(X) ->
-        dimmed_value_to_doc(X)
-    ;
-        str("?dimmed_value?")
-    ).
 
 %----------------------------------------------------------------------------%
 :- end_module si_units.print.
