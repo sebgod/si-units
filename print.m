@@ -137,8 +137,6 @@ exp_to_doc(Exp) = Doc :-
     Doc =
     ( Denom = integer.one ->
         str(integer_to_sup_str(Numer))
-    ; Denom = to_integer(2), Numer = integer.one ->
-        str("½")
     ;
         docs([str("⁽"), str(integer_to_sup_str(Numer)),
               str("⁄"), str(integer_to_sub_str(Denom)),  str("₎")])
