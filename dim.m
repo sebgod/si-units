@@ -32,10 +32,10 @@
 :- inst dim
     ---> one
     ;    unit(ground)
-    ;    square(ground)
     ;    sum(list_skel(ground), list_skel(dim))
     ;    product(list_skel(dim))
-    ;    cube(ground)
+    ;    square(dim)
+    ;    cube(dim)
     ;    power(dim, ground).
 
 :- type base_quantity
@@ -47,19 +47,87 @@
     ;    luminous_intensity
     ;    amount_of_substance.
 
+:- func norm(dim) = dim is det.
+
+:- func times(dim, dim) = dim.
+
 :- type si_const == ((func) = dim).
 :- inst si_const == ((func) = (out(dim)) is det).
-
-%:- type si_derived == ((func) = dimmed_value).
-%:- inst si_derived == ((func) = (out(dimmed_value)) is det).
-% `with_type` si_derived `with_inst` si_derived..
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
 
+:- import_module generic_math.
+:- import_module require.
+
 %----------------------------------------------------------------------------%
+
+norm(Dim) =
+    ( Dim = square(Base) ->
+        power(Base, rational.rational(2))
+    ; Dim = cube(Base) ->
+        power(Base, rational.rational(3))
+    ;
+        Dim
+    ).
+
+times(Md0, Mr0) = Product :-
+    Md = norm(Md0),
+    Mr = norm(Mr0),
+    Product =
+    (
+        Md = one
+    ->
+        Mr
+    ;
+        Mr = one
+    ->
+        Md
+    ;
+        Md = unit(Base1)
+    ->
+        ( Mr = unit(Base2) ->
+            ( Base1 = Base2 ->
+                square(Md)
+            ;
+                product([Md, Mr])
+            )
+        ; Mr = product(Prod1) ->
+            product([Md] ++ Prod1)
+        ;
+            product([Md] ++ [Mr])
+        )
+    ;
+        Md = power(Base1, Exp1)
+    ->
+        ( Mr = power(Base2, Exp2) ->
+            ( Base1 = Base2 ->
+                power(Base1, Exp1 + Exp2)
+            ;
+                product([Md, Mr])
+            )
+        ; Mr = product(Prod1) ->
+            product([Md] ++ Prod1)
+        ; Mr = Base1 ->
+            power(Base1, Exp1 + rational.one)
+        ;
+            product([Md] ++ [Mr])
+        )
+    ;
+        Md = product(Prod1)
+    ->
+        ( Mr = product(Prod2) ->
+            product(Prod1 ++ Prod2)
+        ;
+            product(Prod1 ++ [Mr])
+        )
+    ;
+        unexpected($file, $pred, "unsupported × dimension product")
+    ).
+
+
 
 %----------------------------------------------------------------------------%
 :- end_module si_units.dim.

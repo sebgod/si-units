@@ -115,20 +115,18 @@ any_dimmed_value_to_doc(DimmedValue) = group(FmtDim) :-
 scalar_to_doc(scalar(V, P)) =
     str(string.format("%0." ++ from_int(P) ++ "e", [f(V)])).
 
-dim_to_doc(Dim) =
-    ( Dim = one ->
+dim_to_doc(Dim0) = Dim :-
+    Dim1 = norm(Dim0),
+    Dim =
+    ( Dim1 = one ->
         str("")
-    ; Dim = unit(Unit) ->
+    ; Dim1 = unit(Unit) ->
         str(si_unit_symbol(Unit))
-    ; Dim = power(Base, Exp) ->
+    ; Dim1 = power(Base, Exp) ->
         docs([dim_to_doc(Base), exp_to_doc(Exp)])
-    ; Dim = square(Base) ->
-        docs([dim_to_doc(Base), str("[²]")])
-    ; Dim = cube(Base) ->
-        docs([dim_to_doc(Base), str("[³]")])
-    ; Dim = product(Product) ->
+    ; Dim1 = product(Product) ->
         format_list(map_to_univ(Product), str("\u2219"))
-    ; Dim = sum(Scales, Dims) ->
+    ; Dim1 = sum(Scales, Dims) ->
         docs([str("("), format_list(
            map_corresponding(summand_to_univ, Scales, Dims), str(" + ")),
               str(")")])
@@ -187,8 +185,8 @@ digit_to_sup('1') = '¹'.
 digit_to_sup('2') = '²'.
 digit_to_sup('3') = '³'.
 digit_to_sup('4') = '⁴'.
-digit_to_sup('5') = '⁵'.
-digit_to_sup('6') = '⁶'.
+digit_to_sup('5') = '5'. %⁵
+digit_to_sup('6') = '6'. %⁶
 digit_to_sup('7') = '⁷'.
 digit_to_sup('8') = '⁸'.
 digit_to_sup('9') = '⁹'.
