@@ -140,7 +140,7 @@ Base ** Exp = dimmed_value(scale(Dim), Dim, symbol(Base)) :-
 
 Multiplicand * Multiplier = dimmed_value(Scale, Dim, Sym) :-
     Scale = scale(Multiplicand) * scale(Multiplier),
-    Dim   = times(dim(Multiplicand), dim(Multiplier)),
+    Dim   = dim(Multiplicand) `times`  dim(Multiplier),
     SymMd = symbol(Multiplicand),
     SymMr = symbol(Multiplier),
     Sym   =
@@ -150,10 +150,24 @@ Multiplicand * Multiplier = dimmed_value(Scale, Dim, Sym) :-
         no
     ).
 
+:- func norm(dim) = dim.
+
+norm(Dim) =
+    ( Dim = square(Base) ->
+        power(Base, rational.rational(2))
+    ; Dim = cube(Base) ->
+        power(Base, rational.rational(3))
+    ;
+        Dim
+    ).
+
 
 :- func times(dim, dim) = dim.
 
-times(Md, Mr) =
+times(Md0, Mr0) = Product :-
+    Md = norm(Md0),
+    Mr = norm(Mr0),
+    Product =
     (
         Md = one
     ->
@@ -173,22 +187,8 @@ times(Md, Mr) =
             )
         ; Mr = product(Prod1) ->
             product([Md] ++ Prod1)
-        ; Mr = square(unit(Base2)) ->
-            ( Base1 = Base2 ->
-                cube(Md)
-            ;
-                product([Md, Mr])
-            )
         ;
             product([Md] ++ [Mr])
-        )
-    ;
-        Md = square(Base)
-    ->
-        ( if Mr = Base then
-            cube(Base)
-          else
-            power(Base, rational.rational(2)) `times` Mr
         )
     ;
         Md = power(Base1, Exp1)
