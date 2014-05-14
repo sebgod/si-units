@@ -52,6 +52,7 @@ main(!IO) :-
     print_test("4 m + 6 m", 4.0*m + m(6.0), !IO),
     print_test("30 s - 2 s", 30.0*s - 2.0*s, !IO),
     print_test("[°C]", kelvin - 273.15, !IO),
+    print_test("m² * m³", (m*m) * (m*m*m), !IO),
     print_test("Area rect(2m, 3m)", area(rect(m(2.0), m(3.0))), !IO),
     print_test("Velocity", m/s, !IO),
     print_test("Acceleration", m/(s**2), !IO),

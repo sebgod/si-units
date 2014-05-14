@@ -25,13 +25,17 @@
     ;    unit(base_quantity)
     ;    sum(list(scalar), list(dim))
     ;    product(list(dim))
+    ;    square(dim)
+    ;    cube(dim)
     ;    power(dim, exp).
 
 :- inst dim
     ---> one
     ;    unit(ground)
+    ;    square(ground)
     ;    sum(list_skel(ground), list_skel(dim))
     ;    product(list_skel(dim))
+    ;    cube(ground)
     ;    power(dim, ground).
 
 :- type base_quantity

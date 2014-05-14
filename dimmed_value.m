@@ -167,14 +167,28 @@ times(Md, Mr) =
     ->
         ( Mr = unit(Base2) ->
             ( Base1 = Base2 ->
-                power(Md, to_rational(2))
+                square(Md)
             ;
                 product([Md, Mr])
             )
         ; Mr = product(Prod1) ->
             product([Md] ++ Prod1)
+        ; Mr = square(unit(Base2)) ->
+            ( Base1 = Base2 ->
+                cube(Md)
+            ;
+                product([Md, Mr])
+            )
         ;
             product([Md] ++ [Mr])
+        )
+    ;
+        Md = square(Base)
+    ->
+        ( if Mr = Base then
+            cube(Base)
+          else
+            power(Base, rational.rational(2)) `times` Mr
         )
     ;
         Md = power(Base1, Exp1)

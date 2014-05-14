@@ -122,6 +122,10 @@ dim_to_doc(Dim) =
         str(si_unit_symbol(Unit))
     ; Dim = power(Base, Exp) ->
         docs([dim_to_doc(Base), exp_to_doc(Exp)])
+    ; Dim = square(Base) ->
+        docs([dim_to_doc(Base), str("[²]")])
+    ; Dim = cube(Base) ->
+        docs([dim_to_doc(Base), str("[³]")])
     ; Dim = product(Product) ->
         format_list(map_to_univ(Product), str("\u2219"))
     ; Dim = sum(Scales, Dims) ->
