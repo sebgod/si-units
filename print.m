@@ -2,7 +2,7 @@
 % vim: ft=mercury ff=unix ts=4 sw=4 et
 %----------------------------------------------------------------------------%
 % File: print.m
-% Copyright (C) 2014 Sebastian Godelet
+% Copyright © 2014 Sebastian Godelet
 % Main author: Sebastian Godelet <sebastian.godelet+github@gmail.com>
 % Created on: Mon May 12 16:03:06 CEST 2014
 %
@@ -185,8 +185,8 @@ digit_to_sup('1') = '¹'.
 digit_to_sup('2') = '²'.
 digit_to_sup('3') = '³'.
 digit_to_sup('4') = '⁴'.
-digit_to_sup('5') = '5'. %⁵
-digit_to_sup('6') = '6'. %⁶
+digit_to_sup('5') = '⁵'.
+digit_to_sup('6') = '⁶'.
 digit_to_sup('7') = '⁷'.
 digit_to_sup('8') = '⁸'.
 digit_to_sup('9') = '⁹'.
