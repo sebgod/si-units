@@ -38,6 +38,9 @@
     ;    cube(dim)
     ;    power(dim, ground).
 
+:- inst unit(I) == bound(unit(I)).
+:- inst squared_unit(I) ---> square(unit(I)).
+
 :- type base_quantity
     ---> time
     ;    mass

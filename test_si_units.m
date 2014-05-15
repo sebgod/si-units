@@ -41,9 +41,13 @@
 
 :- type rect   ---> rect(metre, metre).
 
-:- inst length ---> unit(length).
+:- inst rect   ---> rect(length, length).
 
-:- func area(rect::in) = (dimmed_value::power_result(length)) is det.
+:- inst area   == squared_unit(bound(length)).
+
+:- func area(rect) = dimmed_value.
+:- mode area(in) = out is det.
+:- mode area(in(rect)) = out(area) is det.
 
 area(rect(A, B)) = A * B.
 

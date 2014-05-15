@@ -43,14 +43,14 @@
 % Insts for better dimension safety
 %
 
-:- inst powered_val(I) --->
+:- inst dimmed_value(I) --->
     dimmed_value(
         ground,
-        bound(power(I, ground)),
+        I,
         ground
     ).
 
-:- mode power_result(I) == out(powered_val(I)).
+:- mode dimmed_result(I) == out(dimmed_value(I)).
 
 
 %----------------------------------------------------------------------------%
