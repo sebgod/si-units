@@ -38,8 +38,11 @@
     ;    cube(dim)
     ;    power(dim, ground).
 
+:- inst squared_unit(I) == squared(unit(I)).
+:- inst squared(I) ---> square(I).
+:- inst cubed(I)   ---> cube(I).
+:- inst powered(I) ---> power(I, ground).
 :- inst unit(I) == bound(unit(I)).
-:- inst squared_unit(I) ---> square(unit(I)).
 
 :- type base_quantity
     ---> time
@@ -50,9 +53,20 @@
     ;    luminous_intensity
     ;    amount_of_substance.
 
-:- func norm(dim) = dim is det.
+:- func norm(dim) = dim.
+:- mode norm(in(normed_dim))  = out(normed_dim) is det.
+:- mode norm(in(squared(I))) = out(powered(I)) is det.
+:- mode norm(in(cubed(I))) = out(powered(I)) is det.
+
+:- inst normed_dim
+    ---> one
+    ;    unit(ground)
+    ;    sum(list_skel(ground), list_skel(dim))
+    ;    product(list_skel(dim))
+    ;    power(dim, ground).
 
 :- func times(dim, dim) = dim.
+:- mode times(in(dim), in(dim)) = out is det.
 
 :- type si_const == ((func) = dim).
 :- inst si_const == ((func) = (out(dim)) is det).
