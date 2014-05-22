@@ -3,7 +3,7 @@
 %----------------------------------------------------------------------------%
 % File: si_units.m
 % Main author: Sebastian Godelet <sebastian.godelet+github@gmail.com>
-% Copyright (C) 2014 Sebastian Godelet
+% Copyright © 2014 Sebastian Godelet
 % Created on: Sat 10 May 11:00:45 CEST 2014
 %
 %----------------------------------------------------------------------------%

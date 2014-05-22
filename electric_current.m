@@ -2,7 +2,7 @@
 % vim: ft=mercury ff=unix ts=4 sw=4 et
 %----------------------------------------------------------------------------%
 % File: electric_current.m
-% Copyright (C) 2014 Sebastian Godelet
+% Copyright © 2014 Sebastian Godelet
 % Main author: Sebastian Godelet <sebastian.godelet+github@gmail.com>
 % Created on: Mon May 12 16:51:00 CEST 2014
 %
