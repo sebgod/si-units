@@ -2,7 +2,7 @@
 % vim: ft=mercury ff=unix ts=4 sw=4 et
 %----------------------------------------------------------------------------%
 % File: test_si_units.m
-% Copyright (C) 2014 Sebastian Godelet
+% Copyright © 2014 Sebastian Godelet
 % Main author: Sebastian Godelet <sebastian.godelet+github@gmail.com>
 % Created on: Sun 11 May 20:59:29 CEST 2014
 %
