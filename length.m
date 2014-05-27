@@ -69,6 +69,7 @@ astronomical_unit = m(149597870700.0).
 lightyear = m(9.4605284e15).
 ly = lightyear.
 
+    % XXX Causes a bug with truncated fraction in C# m(3.0857e16).
 parsec = m(3.0857e16).
 pc = parsec.
 
