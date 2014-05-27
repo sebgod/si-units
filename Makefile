@@ -1,5 +1,5 @@
 MMC=mmc
-MCFLAGS=--use-grade-subdirs
+MCFLAGS=--use-grade-subdirs -O3
 MLLIBS=--ml generic_math
 
 SI_UNIT_SUBS := $(wildcard *.m)
@@ -14,6 +14,10 @@ libsi_units: si_units.m $(SI_UNITS_SUBS)
 
 test_si_units: libsi_units test_si_units.m
 	$(MMC) $(MCFLAGS) -m $@ $(MLLIBS)
+
+.PHONY: install
+install: libsi_units
+	$(MMC) $(MCFLAGS) -m $@ $(MMLIBS) $<.install
 
 .PHONY: clean
 clean:
