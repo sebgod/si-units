@@ -17,7 +17,7 @@ test_si_units: libsi_units test_si_units.m
 
 .PHONY: install
 install: libsi_units
-	$(MMC) $(MCFLAGS) -m $@ $(MMLIBS) $<.install
+	$(MMC) $(MCFLAGS) -m $@ $(MLLIBS) $<.install
 
 .PHONY: clean
 clean:
