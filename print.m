@@ -8,49 +8,18 @@
 %
 % Pretty print routines to nicely format all SI Units and derived units
 %
+%----------------------------------------------------------------------------%
 
 :- module si_units.print.
 
 :- interface.
 
-:- import_module io.
-:- import_module list.
+%----------------------------------------------------------------------------%
+
 :- import_module pretty_printer.
 :- import_module si_units.dim.
 :- import_module si_units.dimmed_value.
 :- import_module si_units.scalar.
-
-%----------------------------------------------------------------------------%
-%
-% Helper types for adding formatting descriptors
-%
-
-    % update_formatters/3 will use the get_default_formatter_map,
-    % add the fmts list to the formatter_map sequentially,
-    % and call set_default_formatter_map with the new map.
-:- pred update_formatters(fmts::in(fmts), io::di, io::uo) is det.
-
-:- type fmts == list(fmt).
-
-:- inst fmts == list_skel(fmt).
-
-:- type fmt
-    ---> fmt(
-            fmt_module    :: string,    % FQN Module name
-            fmt_name      :: string,    % Type name
-            fmt_arity     :: int,       % Type arity
-            fmt_formatter :: formatter  % pretty_printer function
-         ).
-
-:- inst fmt
-    ---> fmt(ground, ground, ground, formatter_func).
-
-:- inst formatter_func == (func(in, in) = out is det).
-
-:- func fmt_any((func(T) = doc)) `with_type` formatter.
-
-:- pred set_formatter_sv(fmt::in, formatter_map::in, formatter_map::out)
-    is det.
 
 %----------------------------------------------------------------------------%
 %
@@ -68,20 +37,19 @@
 
 :- func exp_to_doc(exp) = doc.
 
-:- func empty_str = doc.
-
-:- func space = doc.
-
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
 
 :- import_module char.
+:- import_module coloured_pretty_printer.
 :- import_module deconstruct.
 :- import_module generic_math.
 :- use_module int.
 :- use_module integer.
+:- import_module io.
+:- import_module list.
 :- import_module maybe.
 :- use_module rational.
 :- import_module require.
@@ -157,10 +125,6 @@ exp_to_doc(Exp) = Doc :-
 
 summand_to_univ(Scale, Dim) = univ(dimmed_value(Scale, Dim, no)).
 
-:- func map_to_univ(list(T)) = list(univ).
-
-map_to_univ(List) = map((func(E) = univ(E)), List).
-
 :- func integer_to_sup_str(integer.integer) = string.
 
 integer_to_sup_str(Integer) = integer_filter_map_str(digit_to_sup, Integer).
@@ -208,31 +172,8 @@ digit_to_sub('9') = '₉'.
 digit_to_sub('+') = '₊'.
 digit_to_sub('-') = '₋'.
 
-empty_str = str("").
-
-space = str(" ").
-
 %----------------------------------------------------------------------------%
-% Formatter update API
 %
-
-update_formatters(Fmts, !IO) :-
-    get_default_formatter_map(FMap0, !IO),
-    foldl(set_formatter_sv, Fmts, FMap0, FMap),
-    set_default_formatter_map(FMap, !IO).
-
-set_formatter_sv(Fmt, !FMap) :-
-    !:FMap = set_formatter(Fmt^fmt_module, Fmt^fmt_name,
-                         Fmt^fmt_arity, Fmt^fmt_formatter, !.FMap).
-
-fmt_any(Fun, Univ, _Args) =
-    ( Univ = univ(X) ->
-        Fun(X)
-    ;
-        unexpected($file, $module, "cannot print") % TODO deconstruct Univ
-    ).
-
-%----------------------------------------------------------------------------%
 % Initialisation code for pretty printing
 %
 

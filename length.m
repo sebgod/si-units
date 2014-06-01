@@ -42,6 +42,7 @@
 
 :- implementation.
 
+:- import_module coloured_pretty_printer.
 :- import_module io.
 :- import_module list.
 :- import_module maybe.

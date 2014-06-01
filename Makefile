@@ -1,6 +1,6 @@
 MMC=mmc
 MCFLAGS=--use-grade-subdirs -O3
-MLLIBS=--ml generic_math
+MLLIBS=--ml generic_math --ml mercury_misc
 
 SI_UNIT_SUBS := $(wildcard *.m)
 
