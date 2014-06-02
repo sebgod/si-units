@@ -1,4 +1,5 @@
 MMC=mmc
+SUDO=sudo
 MCFLAGS=--use-grade-subdirs -O3
 MLLIBS=--ml generic_math --ml mercury_misc
 
@@ -6,7 +7,9 @@ SI_UNIT_SUBS := $(wildcard *.m)
 
 .PHONY: test
 test: test_si_units
-	@./$<
+	@for test_case in $^ ; do \
+		./$$test_case ; \
+	done
 
 .PHONY: libsi_units
 libsi_units: si_units.m $(SI_UNITS_SUBS)
@@ -17,7 +20,9 @@ test_si_units: libsi_units test_si_units.m
 
 .PHONY: install
 install: libsi_units
-	$(MMC) $(MCFLAGS) -m $@ $(MLLIBS) $<.install
+	@for lib in $^ ; do \
+		$(SUDO) $(MMC) $(MCFLAGS) -m $@ $(MLLIBS) $$lib.install ; \
+	done
 
 .PHONY: clean
 clean:
