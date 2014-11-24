@@ -1,5 +1,5 @@
 %----------------------------------------------------------------------------%
-% vim: ft=mercury ff=unix ts=4 sw=4 et
+% vim: ft=mercury ff=unix ts=4 sw=4 tw=78 et
 %----------------------------------------------------------------------------%
 % File: test_si_units.m
 % Copyright © 2014 Sebastian Godelet
