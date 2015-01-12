@@ -16,6 +16,7 @@
 :- include_module si_units.dim.
 :- include_module si_units.dimmed_value.
 :- include_module si_units.electric_current.
+:- include_module si_units.exp.
 :- include_module si_units.length.
 :- include_module si_units.luminous_intensity.
 :- include_module si_units.mass.

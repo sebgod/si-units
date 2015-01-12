@@ -16,8 +16,8 @@
 
 %----------------------------------------------------------------------------%
 
-:- func mole  `with_type` si_const `with_inst` si_const.
-:- func mol   `with_type` si_const `with_inst` si_const.
+:- func mole  `with_type` si_const `with_inst` si_const(amount_of_substance).
+:- func mol   `with_type` si_const `with_inst` si_const(amount_of_substance).
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%

@@ -16,8 +16,8 @@
 
 %----------------------------------------------------------------------------%
 
-:- func candela `with_type` si_const `with_inst` si_const.
-:- func cd      `with_type` si_const `with_inst` si_const.
+:- func candela `with_type` si_const `with_inst` si_const(luminous_intensity).
+:- func cd      `with_type` si_const `with_inst` si_const(luminous_intensity).
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%

@@ -16,9 +16,9 @@
 
 %----------------------------------------------------------------------------%
 
-:- func ampere `with_type` si_const `with_inst` si_const.
+:- func ampere `with_type` si_const `with_inst` si_const(electric_current).
 
-:- func 'A'    `with_type` si_const `with_inst` si_const.
+:- func 'A'    `with_type` si_const `with_inst` si_const(electric_current).
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%

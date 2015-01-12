@@ -63,6 +63,7 @@
 %:- mode (in(dim) ** in(unique)) = out(dimmed_value) is det.
 
 :- func T1 * T2  = dimmed_value <= (dimmed_value(T1), dimmed_value(T2)).
+:- mode (in * in) = out is det.
 %:- mode (in(dim) * in(dimmed_value)) = out(dimmed_value) is det.
 %:- mode (in(dimmed_value) * in(dim)) = out(dimmed_value) is det.
 %:- mode (in(dimmed_value) * in(unique)) = out(dimmed_value) is det.
@@ -82,10 +83,11 @@
 
 :- implementation.
 
+:- import_module si_units.exp.
+
 :- import_module require.
 :- import_module exception.
 :- use_module math.
-:- use_module rational.
 
 %----------------------------------------------------------------------------%
 %
@@ -124,14 +126,14 @@
 
 %----------------------------------------------------------------------------%
 
-Base ** Exp = dimmed_value(scale(Dim), Dim, symbol(Base)) :-
+Base ** ExpValue = dimmed_value(scale(Dim), Dim, symbol(Base)) :-
     Dim0 = dim(Base),
-    Exp1 = to_rational(Exp),
+    Exp = to_exp(ExpValue),
     Dim =
     ( Dim0 = unit(_) ->
-        power(Dim0, Exp1)
+        power(Dim0, Exp)
     ; Dim0 = power(BaseUnit0, Exp0) ->
-        power(BaseUnit0, Exp0 * Exp1)
+        power(BaseUnit0, Exp0 * Exp)
     ;
         unexpected($file, $pred, "not implemented yet")
     ).
@@ -140,7 +142,7 @@ Base ** Exp = dimmed_value(scale(Dim), Dim, symbol(Base)) :-
 
 Multiplicand * Multiplier = dimmed_value(Scale, Dim, Sym) :-
     Scale = scale(Multiplicand) * scale(Multiplier),
-    Dim   = dim(Multiplicand) `times`  dim(Multiplier),
+    Dim   = dim(Multiplicand) `times` dim(Multiplier),
     SymMd = symbol(Multiplicand),
     SymMr = symbol(Multiplier),
     Sym   =

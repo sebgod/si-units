@@ -13,20 +13,16 @@
 :- interface.
 
 :- import_module list.
-:- use_module rational.
+:- import_module si_units.exp.
 :- import_module si_units.scalar.
 
 %----------------------------------------------------------------------------%
-
-:- type exp == rational.rational.
 
 :- type dim
     ---> one
     ;    unit(base_quantity)
     ;    sum(list(scalar), list(dim))
     ;    product(list(dim))
-    ;    square(dim)
-    ;    cube(dim)
     ;    power(dim, exp).
 
 :- inst dim
@@ -34,12 +30,16 @@
     ;    unit(ground)
     ;    sum(list_skel(ground), list_skel(dim))
     ;    product(list_skel(dim))
-    ;    square(dim)
-    ;    cube(dim)
     ;    power(dim, ground).
 
-:- inst unit(I) == bound(unit(I)).
-:- inst squared_unit(I) ---> square(unit(I)).
+:- inst one ---> one.
+:- inst unit == unit(ground).
+:- inst power == bound(power(dim, ground)).
+
+:- inst squared_unit(I) == powered_unit(I, two).
+:- inst cubed_unit(I)   == powered_unit(I, three).
+:- inst unit(I)         == bound(unit(I)).
+:- inst powered_unit(I, E) ---> power(unit(I), E).
 
 :- type base_quantity
     ---> time
@@ -50,12 +50,29 @@
     ;    luminous_intensity
     ;    amount_of_substance.
 
-:- func norm(dim) = dim is det.
+:- inst base_quantity
+    ---> time
+    ;    mass
+    ;    temperature
+    ;    length
+    ;    electric_current
+    ;    luminous_intensity
+    ;    amount_of_substance.
+
+:- inst time ---> time.
+:- inst mass ---> mass.
+:- inst temperature ---> temperature.
+:- inst length ---> length.
+:- inst electric_current ---> electric_current.
+:- inst luminous_intensity ---> luminous_intensity.
+:- inst amount_of_substance ---> amount_of_substance.
 
 :- func times(dim, dim) = dim.
+:- mode times(in, in) = out is det.
+%:- mode times(in(one), in(I)) = out(I) is det.
 
 :- type si_const == ((func) = dim).
-:- inst si_const == ((func) = (out(dim)) is det).
+:- inst si_const(I) == ((func) = (out(unit(I))) is det).
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -67,18 +84,7 @@
 
 %----------------------------------------------------------------------------%
 
-norm(Dim) =
-    ( Dim = square(Base) ->
-        power(Base, rational.rational(2))
-    ; Dim = cube(Base) ->
-        power(Base, rational.rational(3))
-    ;
-        Dim
-    ).
-
-times(Md0, Mr0) = Product :-
-    Md = norm(Md0),
-    Mr = norm(Mr0),
+times(Md, Mr) = Product :-
     Product =
     (
         Md = one
@@ -93,7 +99,7 @@ times(Md0, Mr0) = Product :-
     ->
         ( Mr = unit(Base2) ->
             ( Base1 = Base2 ->
-                square(Md)
+                power(Md, two)
             ;
                 product([Md, Mr])
             )
@@ -114,7 +120,7 @@ times(Md0, Mr0) = Product :-
         ; Mr = product(Prod1) ->
             product([Md] ++ Prod1)
         ; Mr = Base1 ->
-            power(Base1, Exp1 + rational.one)
+            power(Base1, Exp1 + one)
         ;
             product([Md] ++ [Mr])
         )
@@ -130,9 +136,6 @@ times(Md0, Mr0) = Product :-
         unexpected($file, $pred, "unsupported × dimension product")
     ).
 
-
-
 %----------------------------------------------------------------------------%
 :- end_module si_units.dim.
-% -*- Mode: Mercury; column: 80; indent-tabs-mode: nil; tabs-width: 4 -*-
 %----------------------------------------------------------------------------%

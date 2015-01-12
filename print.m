@@ -19,6 +19,7 @@
 :- import_module pretty_printer.
 :- import_module si_units.dim.
 :- import_module si_units.dimmed_value.
+:- import_module si_units.exp.
 :- import_module si_units.scalar.
 
 %----------------------------------------------------------------------------%
@@ -83,18 +84,17 @@ any_dimmed_value_to_doc(DimmedValue) = group(FmtDim) :-
 scalar_to_doc(scalar(V, P)) =
     str(string.format("%0." ++ from_int(P) ++ "e", [f(V)])).
 
-dim_to_doc(Dim0) = Dim :-
-    Dim1 = norm(Dim0),
-    Dim =
-    ( Dim1 = one ->
+dim_to_doc(Dim) = DimDoc :-
+    DimDoc =
+    ( Dim = one ->
         str("")
-    ; Dim1 = unit(Unit) ->
+    ; Dim = unit(Unit) ->
         str(si_unit_symbol(Unit))
-    ; Dim1 = power(Base, Exp) ->
+    ; Dim = power(Base, Exp) ->
         docs([dim_to_doc(Base), exp_to_doc(Exp)])
-    ; Dim1 = product(Product) ->
+    ; Dim = product(Product) ->
         format_list(map_to_univ(Product), str("\u2219"))
-    ; Dim1 = sum(Scales, Dims) ->
+    ; Dim = sum(Scales, Dims) ->
         docs([str("("), format_list(
            map_corresponding(summand_to_univ, Scales, Dims), str(" + ")),
               str(")")])
@@ -111,8 +111,9 @@ si_unit_symbol(electric_current) = "A".
 si_unit_symbol(luminous_intensity) = "cd".
 
 exp_to_doc(Exp) = Doc :-
-    Numer = rational.numer(Exp),
-    Denom = rational.denom(Exp),
+    ExpAsRat = to_rational(Exp),
+    Numer = rational.numer(ExpAsRat),
+    Denom = rational.denom(ExpAsRat),
     Doc =
     ( Denom = integer.one ->
         str(integer_to_sup_str(Numer))

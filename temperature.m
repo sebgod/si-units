@@ -16,8 +16,8 @@
 
 %----------------------------------------------------------------------------%
 
-:- func kelvin `with_type` si_const `with_inst` si_const.
-:- func 'K'    `with_type` si_const `with_inst` si_const.
+:- func kelvin `with_type` si_const `with_inst` si_const(temperature).
+:- func 'K'    `with_type` si_const `with_inst` si_const(temperature).
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%

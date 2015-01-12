@@ -16,8 +16,8 @@
 
 %----------------------------------------------------------------------------%
 
-:- func second `with_type` si_const `with_inst` si_const.
-:- func s      `with_type` si_const `with_inst` si_const.
+:- func second `with_type` si_const `with_inst` si_const(time).
+:- func s      `with_type` si_const `with_inst` si_const(time).
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%

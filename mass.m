@@ -14,8 +14,8 @@
 
 :- import_module si_units.dim.
 
-:- func kilogram `with_type` si_const `with_inst` si_const.
-:- func kg       `with_type` si_const `with_inst` si_const.
+:- func kilogram `with_type` si_const `with_inst` si_const(mass).
+:- func kg       `with_type` si_const `with_inst` si_const(mass).
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -29,5 +29,4 @@ kg = kilogram.
 
 %----------------------------------------------------------------------------%
 :- end_module si_units.mass.
-% -*- Mode: Mercury; column: 80; indent-tabs-mode: nil; tabs-width: 4 -*-
 %----------------------------------------------------------------------------%
